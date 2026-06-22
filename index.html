@@ -243,15 +243,18 @@
     font-size: 19px;
   }
 
-  .current-number{
+.current-number{
     font-family: var(--font-display);
     font-weight: 900;
-    font-size: clamp(64px, 22vw, 128px);
+    font-size: 140px; /* JSで調整される */
     line-height: 1;
     color: var(--text-main);
     letter-spacing: 2px;
     text-shadow: 0 0 28px rgba(0,230,195,0.35);
-    transition: transform 0.15s ease;
+    white-space: nowrap;
+    display: inline-block;
+    max-width: 100%;
+    /* transition: font-size 0.12s ease; // JS計算の邪魔になるためコメントアウト */
   }
 
   .number-sub{
