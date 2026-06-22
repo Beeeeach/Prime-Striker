@@ -1,0 +1,718 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>素因数分解バトル</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg-deep:      #060912;
+    --bg-panel:     #0d1322;
+    --line:         #1c2740;
+    --self-color:   #00e6c3;
+    --self-glow:    #00e6c388;
+    --enemy-color:  #ff3868;
+    --enemy-glow:   #ff386888;
+    --accent:       #ffb627;
+    --text-main:    #e8edf7;
+    --text-dim:     #5f6f93;
+    --danger:       #ff3868;
+
+    --font-display: 'Orbitron', sans-serif;
+    --font-mono:    'Share Tech Mono', monospace;
+  }
+
+  *{ box-sizing: border-box; }
+
+  html, body{
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    background: var(--bg-deep);
+    color: var(--text-main);
+    font-family: var(--font-mono);
+    -webkit-tap-highlight-color: transparent;
+    overscroll-behavior: none;
+  }
+
+  body{
+    background-image:
+      radial-gradient(circle at 15% 8%, rgba(0,230,195,0.07), transparent 40%),
+      radial-gradient(circle at 85% 92%, rgba(255,56,104,0.07), transparent 40%);
+  }
+
+  /* ============ レイアウト全体 ============ */
+  .screen {
+    display: none;
+    width: 100vw;
+    height: 100vh;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+  .screen.active {
+    display: flex;
+  }
+
+  .game-screen{
+    display: none;
+    flex-direction: column;
+    min-height: 100vh;
+    max-width: 560px;
+    margin: 0 auto;
+    padding: 12px 14px calc(14px + env(safe-area-inset-bottom));
+    gap: 10px;
+  }
+  .game-screen.active {
+    display: flex;
+  }
+
+  /* ============ 上部：ステータスエリア ============ */
+  .status-area{
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    background: var(--bg-panel);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 12px 14px;
+    position: relative;
+  }
+
+  .timer-row{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 2px;
+  }
+
+  .timer-label{
+    font-family: var(--font-display);
+    font-size: 13px;
+    letter-spacing: 2px;
+    color: var(--text-dim);
+    margin-right: 8px;
+  }
+
+  .timer-value{
+    font-family: var(--font-display);
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--accent);
+    letter-spacing: 1px;
+    min-width: 64px;
+    text-align: center;
+  }
+
+  .timer-value.is-warning{
+    color: var(--danger);
+    animation: timer-pulse 0.9s infinite;
+  }
+
+  @keyframes timer-pulse{
+    0%, 100%{ opacity: 1; }
+    50%{ opacity: 0.4; }
+  }
+
+  .score-display{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 6px 0 2px;
+  }
+
+  .score-display.is-hidden{
+    display: none;
+  }
+
+  .score-label{
+    font-family: var(--font-display);
+    font-size: 11px;
+    letter-spacing: 2px;
+    color: var(--text-dim);
+  }
+
+  .score-value{
+    font-family: var(--font-display);
+    font-weight: 900;
+    font-size: 30px;
+    color: var(--accent);
+    text-shadow: 0 0 14px rgba(255,182,39,0.6);
+    letter-spacing: 1px;
+  }
+
+  .hp-rows{
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  
+  .hp-row{
+    display: grid;
+    grid-template-columns: 52px 1fr 70px;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .hp-rows.is-hidden {
+    display: none !important;
+  }
+
+  .hp-row .hp-tag{
+    font-size: 11px;
+    letter-spacing: 1px;
+    color: var(--text-dim);
+    font-family: var(--font-display);
+  }
+
+  .hp-bar-track{
+    position: relative;
+    height: 16px;
+    background: #0a0f1c;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    overflow: hidden;
+  }
+
+  .hp-bar-fill{
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    border-radius: 8px;
+    transition: width 0.3s ease;
+  }
+
+  .hp-bar-fill.self{
+    background: linear-gradient(90deg, #00b89a, var(--self-color));
+    box-shadow: 0 0 10px var(--self-glow);
+  }
+
+  .hp-bar-fill.enemy{
+    background: linear-gradient(90deg, #b3174a, var(--enemy-color));
+    box-shadow: 0 0 10px var(--enemy-glow);
+  }
+
+  .hp-row .hp-text{
+    font-size: 12px;
+    text-align: right;
+    color: var(--text-main);
+    white-space: nowrap;
+  }
+
+  /* ============ 中央：メインエリア ============ */
+  .main-area{
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: var(--bg-panel);
+    border: 1px solid var(--line);
+    border-radius: 18px;
+    position: relative;
+    padding: 28px 12px;
+    min-height: 200px;
+    overflow: hidden;
+  }
+
+  .main-area::before{
+    content: "";
+    position: absolute;
+    inset: 0;
+    background:
+      linear-gradient(transparent 95%, rgba(255,255,255,0.025) 95%) 0 0/100% 22px;
+    pointer-events: none;
+  }
+
+  .combo-display{
+    font-family: var(--font-display);
+    font-size: 15px;
+    font-weight: 700;
+    letter-spacing: 3px;
+    color: var(--accent);
+    text-shadow: 0 0 12px rgba(255,182,39,0.6);
+    margin-bottom: 6px;
+    min-height: 18px;
+    opacity: 0.95;
+  }
+
+  .combo-display .combo-num{
+    font-size: 19px;
+  }
+
+  .current-number{
+    font-family: var(--font-display);
+    font-weight: 900;
+    font-size: clamp(64px, 22vw, 128px);
+    line-height: 1;
+    color: var(--text-main);
+    letter-spacing: 2px;
+    text-shadow: 0 0 28px rgba(0,230,195,0.35);
+    transition: transform 0.15s ease;
+  }
+
+  .number-sub{
+    margin-top: 10px;
+    font-size: 13px;
+    color: var(--text-dim);
+    letter-spacing: 1px;
+  }
+
+  /* ============ スタン演出 ============ */
+  .main-area.is-stunned{
+    animation: stun-shake 0.5s infinite;
+  }
+
+  .main-area.is-stunned::after{
+    content: "STUN";
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(6,9,18,0.55);
+    color: var(--danger);
+    font-family: var(--font-display);
+    font-size: 28px;
+    letter-spacing: 6px;
+    text-shadow: 0 0 18px var(--enemy-glow);
+    z-index: 2;
+  }
+
+  .main-area.is-stunned .current-number,
+  .main-area.is-stunned .combo-display{
+    filter: brightness(0.35) blur(0.5px);
+  }
+
+  @keyframes stun-shake{
+    0%, 100%{ transform: translate(0, 0); }
+    20%{ transform: translate(-4px, 2px); }
+    40%{ transform: translate(4px, -2px); }
+    60%{ transform: translate(-3px, -1px); }
+    80%{ transform: translate(3px, 1px); }
+  }
+
+  /* ============ 下部：操作エリア ============ */
+  .control-area{
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 10px;
+  }
+
+  .prime-btn{
+    appearance: none;
+    border: none;
+    outline: none;
+    cursor: pointer;
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: clamp(20px, 6vw, 26px);
+    color: var(--text-main);
+    background: linear-gradient(160deg, #16203a, #0d1424);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 0;
+    aspect-ratio: 1 / 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    box-shadow:
+      0 3px 0 rgba(0,0,0,0.5),
+      inset 0 1px 0 rgba(255,255,255,0.05);
+    transition: transform 0.08s ease, box-shadow 0.08s ease, background 0.15s ease, color 0.15s ease;
+    -webkit-user-select: none;
+    user-select: none;
+    touch-action: manipulation;
+  }
+
+  .prime-btn:active,
+  .prime-btn.is-pressed{
+    transform: translateY(2px);
+    box-shadow:
+      0 1px 0 rgba(0,0,0,0.5),
+      inset 0 1px 0 rgba(255,255,255,0.05);
+    background: linear-gradient(160deg, #1d2c50, #121b30);
+    color: var(--self-color);
+    border-color: var(--self-color);
+  }
+
+  .prime-btn.is-correct{
+    background: linear-gradient(160deg, #0f3f37, #0a261f);
+    border-color: var(--self-color);
+    color: var(--self-color);
+    box-shadow: 0 0 14px var(--self-glow);
+  }
+
+  .prime-btn.is-wrong{
+    background: linear-gradient(160deg, #3f0f1d, #260a14);
+    border-color: var(--enemy-color);
+    color: var(--enemy-color);
+    box-shadow: 0 0 14px var(--enemy-glow);
+  }
+
+  .prime-btn:disabled{
+    opacity: 0.35;
+    cursor: not-allowed;
+  }
+
+  /* --- スタート画面 --- */
+  #start-screen {
+    background: radial-gradient(circle at 50% 30%, #131a2a 0%, #05070c 100%);
+  }
+
+  .title-wrap { text-align: center; }
+  .game-title {
+    font-size: 3rem;
+    letter-spacing: 2px;
+    color: var(--self-color);
+    text-shadow: 0 0 10px var(--self-color), 0 0 30px rgba(0,230,195,0.5);
+    margin: 0;
+    font-family: var(--font-display);
+  }
+
+  .game-subtitle {
+    color: var(--enemy-color);
+    letter-spacing: 4px;
+    margin-top: 8px;
+    font-family: var(--font-display);
+  }
+
+  .mode-select {
+    display: flex;
+    gap: 24px;
+    margin-top: 48px;
+  }
+
+  .mode-btn {
+    background: rgba(0, 230, 195, 0.05);
+    border: 2px solid var(--self-color);
+    color: var(--text-main);
+    padding: 20px 36px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    font-family: var(--font-display);
+  }
+
+  .mode-btn:hover {
+    background: var(--self-color);
+    color: #000;
+    box-shadow: 0 0 20px var(--self-color);
+    transform: translateY(-3px);
+  }
+
+  .mode-btn__label { font-size: 1.3rem; font-weight: bold; }
+  .mode-btn__sub { font-size: 0.8rem; opacity: 0.8; margin-top: 4px; }
+
+  .mode-btn--vs {
+    border-color: var(--enemy-color);
+    background: rgba(255, 56, 104, 0.05);
+  }
+  .mode-btn--vs:hover {
+    background: var(--enemy-color);
+    box-shadow: 0 0 20px var(--enemy-color);
+  }
+
+  .back-btn-container {
+    display: flex;
+    justify-content: center;
+    margin-top: 10px;
+  }
+
+  .back-btn {
+    background: transparent;
+    border: 1px solid var(--line);
+    color: var(--text-dim);
+    padding: 8px 16px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-family: var(--font-display);
+    font-size: 12px;
+    transition: all 0.2s;
+  }
+  .back-btn:hover {
+    border-color: var(--self-color);
+    color: var(--self-color);
+  }
+
+  @media (max-width: 560px) {
+    .game-title { font-size: 2rem; }
+    .mode-select { flex-direction: column; gap: 16px; }
+  }
+  /* ============ リザルト画面 ============ */
+.result-screen{
+  display: none;
+  position: absolute;
+  inset: 0;
+  z-index: 10;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  background: rgba(5, 7, 12, 0.82);
+  backdrop-filter: blur(6px);
+}
+
+.result-screen.is-visible{
+  display: flex;
+  animation: result-fade-in 0.4s ease forwards;
+}
+
+@keyframes result-fade-in{
+  from{ opacity: 0; }
+  to{ opacity: 1; }
+}
+
+.result-panel{
+  width: 100%;
+  max-width: 420px;
+  background: linear-gradient(160deg, #0d1426, #060911);
+  border: 1px solid var(--self-color);
+  border-radius: 18px;
+  padding: 32px 24px;
+  text-align: center;
+  box-shadow:
+    0 0 24px rgba(0,230,195,0.25),
+    inset 0 1px 0 rgba(255,255,255,0.04);
+  opacity: 0;
+  transform: translateY(16px) scale(0.97);
+  animation: result-panel-in 0.5s 0.1s ease forwards;
+}
+
+@keyframes result-panel-in{
+  to{
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.result-eyebrow{
+  font-family: var(--font-display);
+  font-size: 11px;
+  letter-spacing: 3px;
+  color: var(--self-color);
+  text-shadow: 0 0 10px var(--self-glow);
+  margin: 0 0 6px;
+}
+
+.result-title{
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-size: 26px;
+  letter-spacing: 2px;
+  color: var(--text-main);
+  margin: 0 0 24px;
+  text-shadow: 0 0 18px rgba(0,230,195,0.35);
+}
+
+.result-stats{
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  margin-bottom: 20px;
+}
+
+.result-stat{
+  flex: 1;
+  background: #0a0f1c;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 14px 8px;
+  opacity: 0;
+  transform: translateY(10px);
+  animation: result-stat-in 0.5s ease forwards;
+}
+
+.result-stat:nth-child(1){ animation-delay: 0.35s; }
+.result-stat:nth-child(2){ animation-delay: 0.5s; }
+
+@keyframes result-stat-in{
+  to{
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.result-stat__label{
+  display: block;
+  font-family: var(--font-display);
+  font-size: 10px;
+  letter-spacing: 1.5px;
+  color: var(--text-dim);
+  margin-bottom: 6px;
+}
+
+.result-stat__value{
+  display: block;
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-size: 30px;
+  color: var(--accent);
+  text-shadow: 0 0 14px rgba(255,182,39,0.6);
+}
+
+.result-message{
+  font-size: 13px;
+  color: var(--text-dim);
+  letter-spacing: 1px;
+  margin-bottom: 28px;
+}
+
+.result-actions{
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.result-btn{
+  appearance: none;
+  border-radius: 999px;
+  padding: 13px 20px;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 14px;
+  letter-spacing: 2px;
+  cursor: pointer;
+  background: transparent;
+  transition: all 0.2s ease;
+}
+
+.result-btn--primary{
+  border: 2px solid var(--self-color);
+  color: var(--self-color);
+  box-shadow: 0 0 8px var(--self-glow);
+}
+
+.result-btn--primary:hover{
+  background: var(--self-color);
+  color: #04120f;
+  box-shadow: 0 0 22px var(--self-color), 0 0 40px var(--self-glow);
+}
+
+.result-btn--secondary{
+  border: 2px solid var(--text-dim);
+  color: var(--text-dim);
+}
+
+.result-btn--secondary:hover{
+  border-color: var(--enemy-color);
+  color: var(--enemy-color);
+  box-shadow: 0 0 16px var(--enemy-glow);
+}
+</style>
+</head>
+
+<body>
+  <div id="start-screen" class="screen active">
+    <div class="title-wrap">
+      <h1 class="game-title">Prime Striker</h1>
+      <p class="game-subtitle">DIVIDE To SURVIVE</p>
+    </div>
+
+    <div class="mode-select">
+      <button id="btn-solo" class="mode-btn mode-btn--solo">
+        <span class="mode-btn__label">1人プレイ</span>
+        <span class="mode-btn__sub">Score Attack</span>
+      </button>
+
+      <button id="btn-vs" class="mode-btn mode-btn--vs">
+        <span class="mode-btn__label">2人対戦</span>
+        <span class="mode-btn__sub">ONLINE (COMING SOON)</span>
+      </button>
+    </div>
+  </div>
+
+  <div class="game-screen" id="game-screen">
+    <header class="status-area" id="statusArea">
+      <div class="timer-row">
+        <span class="timer-label">TIME</span>
+        <span class="timer-value" id="timerValue">120</span>
+      </div>
+      
+      <div class="score-display" id="score-display">
+        <span class="score-label">SCORE</span>
+        <span class="score-value" id="score-value">0</span>
+      </div>
+
+      <div class="hp-rows" id="hp-rows">
+        <div class="hp-row self-row" id="selfHpRow">
+          <span class="hp-tag">YOU</span>
+          <div class="hp-bar-track">
+            <div class="hp-bar-fill self" id="selfHpFill" style="width:100%;"></div>
+          </div>
+          <span class="hp-text" id="selfHpText">100/100</span>
+        </div>
+
+        <div class="hp-row enemy-row" id="enemyHpRow">
+          <span class="hp-tag">ENEMY</span>
+          <div class="hp-bar-track">
+            <div class="hp-bar-fill enemy" id="enemyHpFill" style="width:100%;"></div>
+          </div>
+          <span class="hp-text" id="enemyHpText">100/100</span>
+        </div>
+      </div>
+    </header>
+
+    <main class="main-area" id="mainArea">
+      <div class="combo-display" id="comboDisplay">
+        <span class="combo-num" id="comboNum">0</span> COMBO
+      </div>
+      <div class="current-number" id="currentNumber">---</div>
+      <div class="number-sub" id="numberSub">素因数を選択してください</div>
+    </main>
+
+    <section class="control-area" id="controlArea">
+      <button class="prime-btn" data-prime="2">2</button>
+      <button class="prime-btn" data-prime="3">3</button>
+      <button class="prime-btn" data-prime="5">5</button>
+      <button class="prime-btn" data-prime="7">7</button>
+      <button class="prime-btn" data-prime="11">11</button>
+      <button class="prime-btn" data-prime="13">13</button>
+      <button class="prime-btn" data-prime="17">17</button>
+      <button class="prime-btn" data-prime="19">19</button>
+      <button class="prime-btn" data-prime="23">23</button>
+      <button class="prime-btn" data-prime="29">29</button>
+    </section>
+
+    <div class="back-btn-container">
+      <button id="btn-back-to-title" class="back-btn">タイトルに戻る</button>
+    </div>
+  </div>
+  <!-- ▼▼ リザルト画面（初期状態は非表示） ▼▼ -->
+  <div id="result-screen" class="result-screen">
+    <div class="result-panel">
+      <p class="result-eyebrow">SYSTEM OVERRIDE SUCCESSFUL</p>
+      <h2 class="result-title" id="resultTitle">RESULT ANALYZED</h2>
+
+      <div class="result-stats">
+        <div class="result-stat">
+          <span class="result-stat__label">TOTAL DAMAGE</span>
+          <span class="result-stat__value" id="resultScore">0</span>
+        </div>
+        <div class="result-stat">
+          <span class="result-stat__label">MAX COMBO</span>
+          <span class="result-stat__value" id="resultMaxCombo">0</span>
+        </div>
+      </div>
+
+      <p class="result-message" id="resultMessage">ゲーム終了</p>
+
+      <div class="result-actions">
+        <button id="btn-retry" class="result-btn result-btn--primary">もう一度プレイ</button>
+        <button id="btn-to-title" class="result-btn result-btn--secondary">タイトルへ戻る</button>
+      </div>
+    </div>
+  </div>
+  <!-- ▲▲ リザルト画面ここまで ▲▲ -->
+
+  <script src="game.js"></script>
+  <script src="battle.js"></script>
+  <script src="menu.js"></script> 
+</body>
+</html>
