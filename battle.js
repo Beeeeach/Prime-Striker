@@ -45,10 +45,10 @@ const btnToTitle = document.getElementById('btn-to-title');
 
 let lastConfig = null;
 
-const GameStartSound = new Audio('決定ボタンを押す47.mp3');
-const DivdeSuccessSound = new Audio('カーソル移動12.mp3');
-const DivdemissSound = new Audio('ビープ音4.mp3');
-const ClearSound = new Audio('成功音.mp3');
+const GameStartSound = new Audio('音声/決定ボタンを押す47.mp3');
+const DivdeSuccessSound = new Audio('音声/カーソル移動12.mp3');
+const DivdemissSound = new Audio('音声/ビープ音4.mp3');
+const ClearSound = new Audio('音声/成功音.mp3');
 
 // ===================================================
 // フォントサイズ調整ロジック
