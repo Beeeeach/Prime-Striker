@@ -45,6 +45,57 @@ const btnToTitle = document.getElementById('btn-to-title');
 
 let lastConfig = null;
 
+const GameStartSound = new Audio('決定ボタンを押す47.mp3');
+const DivdeSuccessSound = new Audio('カーソル移動12.mp3');
+const DivdemissSound = new Audio('ビープ音4.mp3');
+const ClearSound = new Audio('成功音.mp3');
+
+// ===================================================
+// フォントサイズ調整ロジック
+// ===================================================
+function fitNumberFontSize() {
+  const el = document.getElementById('currentNumber');
+  if (!el) return;
+
+  const container = el.closest('.main-area');
+  if (!container) return;
+
+  // コンテナが表示されていない場合は計算をスキップ（または次フレームで再試行）
+  if (container.clientWidth === 0) {
+    requestAnimationFrame(fitNumberFontSize);
+    return;
+  }
+
+  const containerStyle = getComputedStyle(container);
+  const paddingLeft = parseFloat(containerStyle.paddingLeft) || 0;
+  const paddingRight = parseFloat(containerStyle.paddingRight) || 0;
+  const maxWidth = container.clientWidth - paddingLeft - paddingRight - 32; // 余白を少し多めに確保
+
+  const maxFontSize = 140;
+  const minFontSize = 32;
+
+  // 1. まず最大サイズに設定して幅を測る
+  el.style.fontSize = `${maxFontSize}px`;
+  const currentWidth = el.scrollWidth;
+
+  // 2. 幅がオーバーしている場合のみ縮小計算を行う
+  if (currentWidth > maxWidth) {
+    let fontSize = Math.floor(maxFontSize * (maxWidth / currentWidth));
+    fontSize = Math.max(minFontSize, fontSize);
+    el.style.fontSize = `${fontSize}px`;
+  }
+}
+
+// Webフォント読み込み完了時に再計算
+if (document.fonts && document.fonts.ready) {
+  document.fonts.ready.then(() => {
+    fitNumberFontSize();
+  });
+}
+
+// ウィンドウリサイズ時にも再計算
+window.addEventListener('resize', fitNumberFontSize);
+
 
 // ===================================================
 // 2. ゲーム開始・停止処理
@@ -63,6 +114,10 @@ window.startBattle = function(config) {
   }
 
   initGame();
+
+  requestAnimationFrame(() => {
+    fitNumberFontSize();
+  });
 };
 
 window.stopBattle = function() {
@@ -74,6 +129,8 @@ window.stopBattle = function() {
 };
 
 function initGame() {
+  GameStartSound .currentTime = 0; 
+  GameStartSound .play();
   startNumber = generateInitialNumber();
   currentNumber = startNumber;
   step = 0;
@@ -121,11 +178,17 @@ function onPrimeClick(p, btn) {
 
     if (currentNumber === 1) {
       handleComplete();
+      ClearSound .currentTime = 0;
+      ClearSound .play();
     } else {
+      DivdeSuccessSound .currentTime = 0;
+      DivdeSuccessSound .play();
       updateNumberUI();
     }
   } else {
     // 不正解
+    DivdemissSound .currentTime = 0;
+    DivdemissSound .play();
     btn.classList.add('is-wrong');
     setTimeout(() => btn.classList.remove('is-wrong'), 200);
     handleMiss();
@@ -233,6 +296,7 @@ function updateNumberUI() {
   const numberDisplay = document.getElementById("currentNumber");
   if (numberDisplay) {
     numberDisplay.textContent = currentNumber;
+    fitNumberFontSize();
   }
 }
 
@@ -287,6 +351,7 @@ function updateTimerUI() {
   }
 }
 
+
 // ===================================================
 // 7. ボタンへのイベントリスナー登録
 // ===================================================
@@ -323,3 +388,6 @@ if (btnToTitle) {
     }
   });
 }
+window.addEventListener('resize', () => {
+  fitNumberFontSize();
+});
