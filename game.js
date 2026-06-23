@@ -31,8 +31,10 @@ function generateInitialNumber() {
 }
 
 function findClosestValidNumber(target) {
-  const rangeMin = Math.max(2, Math.floor(target - 100));
-  const rangeMax = Math.ceil(target + 100);
+  // ★修正: 固定の ±100 から、ターゲットの大きさに応じた可変の探索範囲に変更
+  const rangeMin = Math.max(2, Math.floor(target * 0.5));
+  const rangeMax = Math.ceil(target * 1.5);
+  
   let closestValue = null;
   let closestDistance = Infinity;
 
@@ -46,11 +48,12 @@ function findClosestValidNumber(target) {
       }
     }
   }
-  return closestValue || 64;
+  // 万が一見つからなかった場合のセーフティ
+  return closestValue || (Math.floor(target) > 2 ? Math.floor(target) : 64);
 }
 
 function generateNextNumber(prev) {
-  const multiplier = randomFloat(1.05, 1.5); // 徐々に大きく
+  const multiplier = randomFloat(1.05,1.5); // 徐々に大きく
   const target = prev * multiplier;
   return findClosestValidNumber(target);
 }
