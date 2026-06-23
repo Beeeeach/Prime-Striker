@@ -6,7 +6,7 @@
 <title>素因数分解バトル</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=JetBrains+Mono:wght@700;800&family=Share+Tech+Mono&display=swap" rel="stylesheet">
 <style>
   :root{
     --bg-deep:      #060912;
@@ -23,6 +23,7 @@
 
     --font-display: 'Orbitron', sans-serif;
     --font-mono:    'Share Tech Mono', monospace;
+    --font-number:  'JetBrains Mono', monospace;
   }
 
   *{ box-sizing: border-box; }
@@ -244,18 +245,17 @@
   }
 
 .current-number{
-    font-family: var(--font-display);
-    font-weight: 900;
-    font-size: 140px; /* JSで調整される */
-    line-height: 1;
-    color: var(--text-main);
-    letter-spacing: 2px;
-    text-shadow: 0 0 28px rgba(0,230,195,0.35);
-    white-space: nowrap;
-    display: inline-block;
-    max-width: 100%;
-    /* transition: font-size 0.12s ease; // JS計算の邪魔になるためコメントアウト */
-  }
+  font-family: var(--font-number); /* ★変更 */
+  font-weight: 800; /* ★変更: JetBrains MonoのExtraBold */
+  font-size: 96px;
+  line-height: 1;
+  color: var(--text-main);
+  letter-spacing: 1px; /* ★変更: 等幅フォントなので少し詰める */
+  text-shadow: 0 0 28px rgba(0,230,195,0.35);
+  white-space: nowrap;
+  display: inline-block;
+  max-width: 100%;
+}
 
   .number-sub{
     margin-top: 10px;
@@ -608,11 +608,322 @@
   color: var(--enemy-color);
   box-shadow: 0 0 16px var(--enemy-glow);
 }
+
+/* ============ ハイスコア表示（スタート画面） ============ */
+.high-score-badge{
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  background: rgba(13, 19, 34, 0.7);
+  border: 1px solid var(--accent);
+  border-radius: 10px;
+  padding: 8px 14px;
+  box-shadow: 0 0 12px rgba(255,182,39,0.25);
+}
+
+.high-score-badge__label{
+  font-family: var(--font-display);
+  font-size: 10px;
+  letter-spacing: 1.5px;
+  color: var(--text-dim);
+}
+
+.high-score-badge__value{
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-size: 20px;
+  color: var(--accent);
+  text-shadow: 0 0 10px rgba(255,182,39,0.6);
+}
+
+/* スタート画面がposition:relativeでないと右上指定が画面全体基準になるため追加 */
+#start-screen{
+  position: relative;
+}
+
+/* ============ NEW RECORD表示（リザルト画面） ============ */
+.new-record-badge{
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 15px;
+  letter-spacing: 2px;
+  color: var(--accent);
+  text-shadow: 0 0 14px rgba(255,182,39,0.7);
+  margin: -6px 0 14px;
+  opacity: 0;
+  transform: scale(0.8);
+  animation: new-record-pop 0.5s 0.6s ease forwards;
+}
+
+.new-record-badge.is-hidden{
+  display: none;
+  animation: none;
+}
+
+@keyframes new-record-pop{
+  to{
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+/* ============ 音量設定 ============ */
+.sound-settings{
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  z-index: 20;
+}
+
+.sound-icon-btn{
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 1px solid var(--line);
+  background: rgba(13, 19, 34, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.sound-icon-btn:hover{
+  border-color: var(--self-color);
+  box-shadow: 0 0 12px var(--self-glow);
+}
+
+.sound-icon-img{
+  width: 22px;
+  height: 22px;
+  object-fit: contain;
+}
+
+.sound-panel{
+  position: absolute;
+  top: 52px;
+  left: 0;
+  width: 200px;
+  background: var(--bg-panel);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 14px 16px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+
+  display: none;
+  flex-direction: column;
+  gap: 14px;
+  opacity: 0;
+  transform: translateY(-6px);
+  transition: opacity 0.15s ease, transform 0.15s ease;
+}
+
+.sound-panel.is-open{
+  display: flex;
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.sound-panel__row{
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.sound-panel__label{
+  font-family: var(--font-display);
+  font-size: 12px;
+  letter-spacing: 1px;
+  color: var(--text-dim);
+  width: 38px;
+  flex-shrink: 0;
+  position: relative; /* ★追加: 斜線(::after)の基準位置にするため */
+}
+
+/* ★新規追加: 音量0の時、ラベルに赤い斜線を入れる */
+.sound-panel__label.is-muted{
+  color: var(--danger);
+}
+
+.sound-panel__label.is-muted::after{
+  content: "";
+  position: absolute;
+  left: -2px;
+  right: -2px;
+  top: 50%;
+  height: 2px;
+  background: var(--danger);
+  transform: rotate(-15deg);
+  box-shadow: 0 0 6px var(--enemy-glow);
+}
+
+/* スライダーのカスタムデザイン */
+.sound-slider{
+  -webkit-appearance: none;
+  appearance: none;
+  flex: 1;
+  height: 4px;
+  border-radius: 2px;
+  background: var(--line);
+  outline: none;
+  cursor: pointer;
+}
+
+.sound-slider::-webkit-slider-thumb{
+  -webkit-appearance: none;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--self-color);
+  box-shadow: 0 0 8px var(--self-glow);
+  cursor: pointer;
+}
+
+.sound-slider::-moz-range-thumb{
+  width: 14px;
+  height: 14px;
+  border: none;
+  border-radius: 50%;
+  background: var(--self-color);
+  box-shadow: 0 0 8px var(--self-glow);
+  cursor: pointer;
+}
+
+/* ============ 一時停止ボタン（タイマー横） ============ */
+/* 変更後 */
+.pause-btn {
+  position: absolute;
+  top: 14px;
+  left: 14px;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 1px solid var(--line);
+  background: rgba(13, 19, 34, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  z-index: 5;
+}
+
+.pause-btn:hover {
+  border-color: var(--accent);
+  box-shadow: 0 0 10px rgba(255, 182, 39, 0.4);
+}
+
+.pause-btn__img {
+  width: 22px;
+  height: 22px;
+  object-fit: contain;
+}
+
+/* ============ 一時停止オーバーレイ ============ */
+.pause-overlay {
+  display: none;
+  position: absolute;
+  inset: 0;
+  z-index: 20;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 16px;
+  background: rgba(5, 7, 12, 0.80);
+  backdrop-filter: blur(6px);
+  border-radius: 18px; /* game-screen と合わせる */
+}
+
+/* game-screen 自体を position:relative にする必要あり */
+#game-screen {
+  position: relative;
+}
+
+.pause-overlay.is-visible {
+  display: flex;
+  animation: pause-fade-in 0.2s ease forwards;
+}
+
+@keyframes pause-fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+.resume-btn {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  border: 2px solid var(--accent);
+  background: rgba(255, 182, 39, 0.08);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.2s ease, box-shadow 0.2s ease, transform 0.1s ease;
+  box-shadow: 0 0 20px rgba(255, 182, 39, 0.3);
+}
+
+.resume-btn:hover {
+  background: rgba(255, 182, 39, 0.18);
+  box-shadow: 0 0 36px rgba(255, 182, 39, 0.6);
+  transform: scale(1.05);
+}
+
+.resume-btn:active {
+  transform: scale(0.97);
+}
+
+.resume-btn__img {
+  width: 36px;
+  height: 36px;
+  object-fit: contain;
+}
+
+.pause-label {
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-size: 28px;
+  letter-spacing: 6px;
+  color: var(--accent);
+  text-shadow: 0 0 18px rgba(255, 182, 39, 0.6);
+  margin: 0;
+}
+
+.pause-hint {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  letter-spacing: 2px;
+  color: var(--text-dim);
+  margin: 0;
+}
 </style>
 </head>
 
 <body>
   <div id="start-screen" class="screen active">
+    <!-- ★追加: 左上の音量設定アイコン＆パネル -->
+  <div class="sound-settings" id="soundSettings">
+    <button class="sound-icon-btn" id="soundIconBtn" aria-label="音量設定">
+      <img src="画像/音量のアイコン素材.png" alt="" class="sound-icon-img" id="soundIconImg">
+    </button>
+
+    <div class="sound-panel" id="soundPanel">
+      <div class="sound-panel__row">
+  <span class="sound-panel__label" id="bgmLabel">BGM</span>
+  <input type="range" id="bgmVolumeSlider" class="sound-slider" min="0" max="100" value="50">
+</div>
+<div class="sound-panel__row">
+  <span class="sound-panel__label" id="seLabel">SE</span>
+  <input type="range" id="seVolumeSlider" class="sound-slider" min="0" max="100" value="80">
+</div>
+    </div>
+  </div>
+    <div class="high-score-badge" id="highScoreBadge">
+    <span class="high-score-badge__label">HIGH SCORE</span>
+    <span class="high-score-badge__value" id="highScoreValue">0</span>
+  </div>
     <div class="title-wrap">
       <h1 class="game-title">Prime Striker</h1>
       <p class="game-subtitle">DIVIDE To SURVIVE</p>
@@ -632,6 +943,10 @@
   </div>
 
   <div class="game-screen" id="game-screen">
+    <button class="pause-btn" id="pauseBtn" aria-label="一時停止">
+      <img src="画像/一時停止ボタン.png" alt="" class="pause-btn__img">
+    </button>
+  
     <header class="status-area" id="statusArea">
       <div class="timer-row">
         <span class="timer-label">TIME</span>
@@ -686,6 +1001,14 @@
     <div class="back-btn-container">
       <button id="btn-back-to-title" class="back-btn">タイトルに戻る</button>
     </div>
+
+    <div id="pause-overlay" class="pause-overlay">
+      <button id="resumeBtn" class="resume-btn" aria-label="再開">
+        <img src="画像/再生ボタン.png" alt="" class="resume-btn__img">
+      </button>
+      <p class="pause-label">PAUSED</p>
+      <p class="pause-hint">[ ENTER ] to Resume</p>
+    </div>
   </div>
   <!-- ▼▼ リザルト画面（初期状態は非表示） ▼▼ -->
   <div id="result-screen" class="result-screen">
@@ -695,7 +1018,7 @@
 
       <div class="result-stats">
         <div class="result-stat">
-          <span class="result-stat__label">TOTAL DAMAGE</span>
+          <span class="result-stat__label">TOTAL SCORE</span>
           <span class="result-stat__value" id="resultScore">0</span>
         </div>
         <div class="result-stat">
@@ -703,6 +1026,7 @@
           <span class="result-stat__value" id="resultMaxCombo">0</span>
         </div>
       </div>
+      <p class="new-record-badge is-hidden" id="newRecordBadge">⚡ NEW RECORD ⚡</p>
 
       <p class="result-message" id="resultMessage">ゲーム終了</p>
 
@@ -713,6 +1037,7 @@
     </div>
   </div>
   <!-- ▲▲ リザルト画面ここまで ▲▲ -->
+  <audio id="bgm" src="音声/パズルDEポンっ！.mp3" loop preload="auto"></audio>
 
   <script src="game.js"></script>
   <script src="battle.js"></script>
