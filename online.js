@@ -59,7 +59,7 @@ onAuthChanged((user) => {
 });
 
 // ============ 外部から使えるようにエクスポート ============
-export function getCurrentUser() {
+export function getOnlineUser() {
   return currentUser;
 }
 // ============ ユーザー情報の表示 ============
@@ -344,5 +344,3 @@ btnBackFromMatching?.addEventListener('click', async () => {
 // ============ 外部公開 ============
 window.getCurrentOnlineUser = () => currentUser;
 window.currentRoomId        = () => currentRoomId;
-
-export { currentUser };
