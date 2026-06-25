@@ -1,5 +1,5 @@
 // online.js
-import { loginWithGoogle, logout, onAuthChanged, getCurrentUser } from './firebase.js';
+import { loginWithGoogle, logout, onAuthChanged, getCurrentUser as getFirebaseUser } from './firebase.js';
 
 // ============ 画面要素 ============
 const loginScreen     = document.getElementById('login-screen');
