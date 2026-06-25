@@ -795,8 +795,8 @@ export { initGame, handleGameOver, updateHPUI, updateEnemyHPUI };
 // VS バトルの初期化
 async function initVsBattle(config) {
   vsRoomId = config.roomId;
-  const { getCurrentUser } = await import('./firebase.js');
-  const user = getCurrentUser();
+  const { getCurrentUser: getUser } = await import('./firebase.js');
+  const user = getUser(); 
   if (!user) return;
 
   vsMyUid = user.uid;
