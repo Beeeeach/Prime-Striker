@@ -1,6 +1,15 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
+  <!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-NBVVCLNM4H"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-NBVVCLNM4H');
+</script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>素因数分解バトル</title>
@@ -1265,11 +1274,342 @@
   transform: translateX(4px);
 }
 
+/* ============ ログイン画面 ============ */
+.login-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  margin-top: 48px;
+  width: 100%;
+  max-width: 320px;
+  padding: 0 16px;
+}
+
+.login-desc {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  color: var(--text-dim);
+  letter-spacing: 1px;
+  text-align: center;
+  margin: 0 0 8px;
+}
+
+.login-btn {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 14px 20px;
+  border-radius: 12px;
+  border: 1px solid var(--self-color);
+  background: rgba(0, 230, 195, 0.05);
+  color: var(--text-main);
+  font-family: var(--font-display);
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.login-btn:hover {
+  background: rgba(0, 230, 195, 0.12);
+  box-shadow: 0 0 18px rgba(0, 230, 195, 0.3);
+  transform: translateY(-2px);
+}
+
+.login-btn--guest {
+  border-color: var(--line);
+  background: transparent;
+  color: var(--text-dim);
+}
+
+.login-btn--guest:hover {
+  border-color: var(--text-dim);
+  background: rgba(255,255,255,0.03);
+  box-shadow: none;
+  transform: none;
+}
+
+.login-btn__note {
+  font-size: 10px;
+  letter-spacing: 0.5px;
+  color: var(--text-dim);
+  font-weight: 400;
+}
+/* ============ ユーザー情報（スタート画面） ============ */
+.user-info {
+  position: absolute;
+  bottom: 24px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: rgba(13, 19, 34, 0.7);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 6px 14px 6px 6px;
+}
+
+.user-info.is-hidden {
+  display: none;
+}
+
+.user-avatar {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 1px solid var(--self-color);
+}
+
+.user-name {
+  font-family: var(--font-display);
+  font-size: 12px;
+  letter-spacing: 1px;
+  color: var(--text-main);
+}
+
+.logout-btn {
+  background: transparent;
+  border: 1px solid var(--line);
+  color: var(--text-dim);
+  padding: 4px 10px;
+  border-radius: 999px;
+  cursor: pointer;
+  font-family: var(--font-display);
+  font-size: 10px;
+  letter-spacing: 1px;
+  transition: all 0.2s ease;
+}
+
+.logout-btn:hover {
+  border-color: var(--enemy-color);
+  color: var(--enemy-color);
+}
+/* ============ マッチング画面 ============ */
+.matching-options {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 32px;
+  width: 100%;
+  max-width: 400px;
+  padding: 0 16px;
+}
+
+.matching-btn {
+  appearance: none;
+  border-radius: 12px;
+  padding: 18px 20px;
+  cursor: pointer;
+  font-family: var(--font-display);
+  display: flex;
+  align-items: center;
+  background: rgba(13, 19, 34, 0.6);
+  border: 1px solid var(--self-color);
+  color: var(--text-main);
+  transition: all 0.2s ease;
+  text-align: left;
+  width: 100%;
+}
+
+.matching-btn:hover {
+  background: rgba(0, 230, 195, 0.1);
+  box-shadow: 0 0 18px rgba(0, 230, 195, 0.3);
+  transform: translateX(4px);
+}
+
+.matching-btn__info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.matching-btn__label {
+  font-size: 1.1rem;
+  font-weight: 700;
+  letter-spacing: 2px;
+  color: var(--self-color);
+}
+
+.matching-btn__sub {
+  font-size: 0.72rem;
+  color: var(--text-dim);
+  letter-spacing: 1px;
+}
+
+.matching-join-box {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 18px 20px;
+  border-radius: 12px;
+  border: 1px solid var(--line);
+  background: rgba(13, 19, 34, 0.6);
+}
+
+.matching-join-label {
+  font-family: var(--font-display);
+  font-size: 0.85rem;
+  letter-spacing: 2px;
+  color: var(--text-dim);
+}
+
+.matching-join-row {
+  display: flex;
+  gap: 10px;
+}
+
+.room-code-input {
+  flex: 1;
+  background: #0a0f1c;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 10px 14px;
+  color: var(--text-main);
+  font-family: var(--font-number);
+  font-size: 1.1rem;
+  letter-spacing: 4px;
+  text-align: center;
+  outline: none;
+  transition: border-color 0.15s ease;
+}
+
+.room-code-input:focus {
+  border-color: var(--self-color);
+  box-shadow: 0 0 10px var(--self-glow);
+}
+
+.join-btn {
+  background: rgba(0, 230, 195, 0.1);
+  border: 1px solid var(--self-color);
+  color: var(--self-color);
+  padding: 10px 18px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-family: var(--font-display);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  transition: all 0.2s ease;
+}
+
+.join-btn:hover {
+  background: var(--self-color);
+  color: #04120f;
+  box-shadow: 0 0 14px var(--self-glow);
+}
+
+/* 待機中 */
+.waiting-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  margin-top: 32px;
+}
+
+.waiting-box.is-hidden {
+  display: none;
+}
+
+.waiting-spinner {
+  width: 48px;
+  height: 48px;
+  border: 3px solid var(--line);
+  border-top-color: var(--self-color);
+  border-radius: 50%;
+  animation: spin 0.9s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.waiting-text {
+  font-family: var(--font-display);
+  font-size: 14px;
+  letter-spacing: 2px;
+  color: var(--text-dim);
+  margin: 0;
+}
+
+.waiting-room-code {
+  font-family: var(--font-number);
+  font-size: 2rem;
+  font-weight: 700;
+  letter-spacing: 8px;
+  color: var(--accent);
+  text-shadow: 0 0 14px rgba(255,182,39,0.6);
+  margin: 0;
+}
+
+.waiting-room-code.is-hidden {
+  display: none;
+}
+/* ============ 相手の数字表示（VS モード） ============ */
+.enemy-number-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 4px 2px;
+  border-top: 1px solid var(--line);
+  margin-top: 4px;
+}
+
+.enemy-number-label {
+  font-family: var(--font-display);
+  font-size: 10px;
+  letter-spacing: 1px;
+  color: var(--text-dim);
+  flex-shrink: 0;
+}
+
+.enemy-number-value {
+  font-family: var(--font-number);
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--enemy-color);
+  text-shadow: 0 0 10px var(--enemy-glow);
+  flex: 1;
+  text-align: center;
+}
+
+.enemy-combo-value {
+  font-family: var(--font-display);
+  font-size: 11px;
+  color: var(--text-dim);
+  letter-spacing: 1px;
+  flex-shrink: 0;
+}
 </style>
 </head>
 
 <body>
-  <div id="start-screen" class="screen active">
+  <!-- ▼▼ ログイン画面 ▼▼ -->
+<div id="login-screen" class="screen active">
+  <div class="title-wrap">
+    <h1 class="game-title">Prime Striker</h1>
+    <p class="game-subtitle">DIVIDE To SURVIVE</p>
+  </div>
+
+  <div class="login-box">
+    <p class="login-desc">オンライン対戦にはログインが必要です</p>
+    <button id="btn-google-login" class="login-btn">
+      <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" width="20" height="20" alt="">
+      Googleでログイン
+    </button>
+    <button id="btn-guest-login" class="login-btn login-btn--guest">
+      ゲストとして続ける
+      <span class="login-btn__note">※オンライン対戦は利用できません</span>
+    </button>
+  </div>
+</div>
+<!-- ▲▲ ログイン画面ここまで ▲▲ -->
+  <div id="start-screen" class="screen">
     <!-- ★追加: 左上の音量設定アイコン＆パネル -->
   <div class="sound-settings" id="soundSettings">
     <button class="sound-icon-btn" id="soundIconBtn" aria-label="音量設定">
@@ -1315,8 +1655,62 @@
     <span>設定</span>
   </button>
 </div>
+<!-- ▼▼ ユーザー情報（ログイン時のみ表示） ▼▼ -->
+<div id="user-info" class="user-info is-hidden">
+  <img id="user-avatar" class="user-avatar" src="" alt="">
+  <span id="user-name" class="user-name"></span>
+  <button id="btn-logout" class="logout-btn">ログアウト</button>
 </div>
+<!-- ▲▲ ユーザー情報ここまで ▲▲ -->
+</div>
+<!-- ▼▼ マッチング画面 ▼▼ -->
+<div id="matching-screen" class="screen">
+  <div class="title-wrap">
+    <h2 class="difficulty-title">オンライン対戦</h2>
+    <p class="difficulty-subtitle">SELECT MATCH TYPE</p>
+  </div>
 
+  <div class="matching-options">
+    <!-- ランダムマッチ -->
+    <button id="btn-random-match" class="matching-btn">
+      <div class="matching-btn__info">
+        <span class="matching-btn__label">ランダムマッチ</span>
+        <span class="matching-btn__sub">自動で相手を探す</span>
+      </div>
+    </button>
+
+    <!-- ルーム作成 -->
+    <button id="btn-create-room" class="matching-btn">
+      <div class="matching-btn__info">
+        <span class="matching-btn__label">ルームを作成</span>
+        <span class="matching-btn__sub">友達にコードを共有して対戦</span>
+      </div>
+    </button>
+
+    <!-- ルームに参加 -->
+    <div class="matching-join-box">
+      <span class="matching-join-label">ルームコードで参加</span>
+      <div class="matching-join-row">
+        <input type="text" id="room-code-input" class="room-code-input"
+          placeholder="6桁のコード" maxlength="6">
+        <button id="btn-join-room" class="join-btn">参加</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 待機中表示 -->
+  <div id="waiting-box" class="waiting-box is-hidden">
+    <div class="waiting-spinner"></div>
+    <p class="waiting-text" id="waiting-text">相手を探しています...</p>
+    <p class="waiting-room-code is-hidden" id="waiting-room-code"></p>
+    <button id="btn-cancel-match" class="back-btn">キャンセル</button>
+  </div>
+
+  <div class="back-btn-container" style="margin-top: 20px;">
+    <button id="btn-back-to-start-from-matching" class="back-btn">← 戻る</button>
+  </div>
+</div>
+<!-- ▲▲ マッチング画面ここまで ▲▲ -->
 <!-- ▼▼ 難易度選択画面 ▼▼ -->
 <div id="difficulty-screen" class="screen">
   <div class="title-wrap">
@@ -1407,6 +1801,13 @@
             <div class="hp-bar-fill enemy" id="enemyHpFill" style="width:100%;"></div>
           </div>
           <span class="hp-text" id="enemyHpText">100/100</span>
+        </div>
+        <div class="enemy-number-row" id="enemyNumberRow">
+          <span class="enemy-number-label">相手の数字</span>
+          <span class="enemy-number-value" id="enemyCurrentNumber">---</span>
+          <span class="enemy-combo-value">
+            <span id="enemyCombo">0</span> COMBO
+          </span>
         </div>
       </div>
     </header>
@@ -1584,10 +1985,11 @@
     </div>
   </div>
   <!-- ▲▲ リザルト画面ここまで ▲▲ -->
-  <audio id="bgm" src="音声/パズルDEポンっ！.mp3" loop preload="auto"></audio>
+  <audio id="bgm" src="音声/パズルDEポンっ！.mp3" loop preload="auto"></audio>
 
-  <script src="game.js"></script>
-  <script src="battle.js"></script>
-  <script src="menu.js"></script> 
+<script type="module" src="game.js"></script>
+<script type="module" src="battle.js"></script>
+<script type="module" src="online.js"></script>
+<script type="module" src="menu.js"></script>
 </body>
 </html>
