@@ -1,6 +1,6 @@
 (function () {
   "use strict";
-  import { initGame } from './battle.js';
+  import { getOnlineUser } from './online.js';
 
   const startScreen = document.getElementById("start-screen");
   const difficultyScreen = document.getElementById("difficulty-screen");
