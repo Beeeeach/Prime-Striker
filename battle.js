@@ -12,6 +12,7 @@ let enemyHP = 1000;
 
 let isStunned = false;
 let isPaused = false;
+let currentDifficulty = 'easy';
 
 
 // ステータス定数
@@ -61,41 +62,55 @@ const BGM_VOLUME = 0.5; // 好みに応じて0.0〜1.0で調整
 
 let lastConfig = null;
 // ★追加: ハイスコア関連
-const HIGH_SCORE_KEY = 'primeStriker_highScore'; // localStorageに保存するキー名
+const HIGH_SCORE_KEYS = {
+  easy:    'primeStriker_highScore_easy',
+  normal:  'primeStriker_highScore_normal',
+  hard:    'primeStriker_highScore_hard',
+  extreme: 'primeStriker_highScore_extreme',
+};
 const highScoreValueDisplay = document.getElementById('highScoreValue');
 const newRecordBadge = document.getElementById('newRecordBadge');
 
-// localStorageからハイスコアを読み込む（保存が無い場合は0）
-function getHighScore() {
-  const saved = localStorage.getItem(HIGH_SCORE_KEY);
-  const num = parseInt(saved, 10);
+function getHighScore(difficulty) {
+  const key = HIGH_SCORE_KEYS[difficulty] || HIGH_SCORE_KEYS.easy;
+  const num = parseInt(localStorage.getItem(key), 10);
   return Number.isNaN(num) ? 0 : num;
 }
 
-// ハイスコアをlocalStorageに保存する
-function setHighScore(score) {
-  localStorage.setItem(HIGH_SCORE_KEY, String(Math.floor(score)));
+function setHighScore(difficulty, score) {
+  const key = HIGH_SCORE_KEYS[difficulty] || HIGH_SCORE_KEYS.easy;
+  localStorage.setItem(key, String(Math.floor(score)));
 }
 
-// スタート画面のハイスコア表示を更新する
+function getOverallBestScore() {
+  return Math.max(...Object.keys(HIGH_SCORE_KEYS).map(d => getHighScore(d)));
+}
+
 function updateHighScoreDisplay() {
   if (highScoreValueDisplay) {
-    highScoreValueDisplay.textContent = getHighScore();
+    highScoreValueDisplay.textContent = getOverallBestScore();
   }
 }
+// 難易度選択画面の各ボタンにベストスコアを反映（menu.jsからも呼べるようwindowに公開）
+window.updateDifficultyHighScores = function () {
+  Object.keys(HIGH_SCORE_KEYS).forEach(difficulty => {
+    const el = document.getElementById(`highScore-${difficulty}`);
+    if (el) el.textContent = getHighScore(difficulty);
+  });
+};
 
-// 今回のスコアがハイスコアを更新したかチェックし、更新があれば保存して true を返す
 function checkAndUpdateHighScore(finalScore) {
-  const current = getHighScore();
+  const current = getHighScore(currentDifficulty);
   if (finalScore > current) {
-    setHighScore(finalScore);
-    return true; // 新記録達成
+    setHighScore(currentDifficulty, finalScore);
+    return true;
   }
-  return false; // 更新なし
+  return false;
 }
 
 // ★追加: ページ読み込み時に一度、スタート画面のハイスコアを表示しておく
 updateHighScoreDisplay();
+window.updateDifficultyHighScores();
 
 const GameStartSound = new Audio('音声/決定ボタンを押す47.mp3');
 const DivdeSuccessSound = new Audio('音声/カーソル移動12.mp3');
@@ -272,6 +287,7 @@ window.addEventListener('resize', fitNumberFontSize);
 // ===================================================
 window.startBattle = function(config) {
   lastConfig = config;
+  currentDifficulty = config.difficulty || 'easy'; // ★追加
   const isSolo = config.mode === 'solo';
   
   if (isSolo) {
@@ -298,6 +314,22 @@ window.stopBattle = function() {
   isGameOver = true;
   stopBgm(); // ★追加: ゲーム中断時にBGM停止
 };
+function updatePrimeButtons() {
+  const config = DIFFICULTY_CONFIG[currentDifficulty] || DIFFICULTY_CONFIG.easy;
+  const activeSet = new Set(config.primes);
+  const controlArea = document.getElementById('controlArea');
+
+  primeButtons.forEach(btn => {
+    const p = parseInt(btn.dataset.prime, 10);
+    btn.style.display = activeSet.has(p) ? '' : 'none';
+  });
+
+  // EASYは3列、それ以外は5列
+  if (controlArea) {
+    controlArea.style.gridTemplateColumns =
+      config.primes.length <= 6 ? 'repeat(3, 1fr)' : 'repeat(5, 1fr)';
+  }
+}
 
 function initGame() {
   playSe(GameStartSound);
@@ -315,6 +347,7 @@ function initGame() {
   isGameOver = false;
   remainingTime = TIME_LIMIT;
 
+  updatePrimeButtons();
   updateNumberUI();
   updateHPUI();
   updateEnemyHPUI();
@@ -339,6 +372,7 @@ function initGame() {
 // ===================================================
 function onPrimeClick(p, btn) {
   if (isStunned || isGameOver || isPaused) return;
+  if (navigator.vibrate) navigator.vibrate(18);
 
   if (currentNumber % p === 0) {
     currentNumber = Math.floor(currentNumber / p);
@@ -370,7 +404,7 @@ function handleMiss() {
   isStunned = true;
   combo = 0;
 
-  // ダメージ計算（1人プレイでも内部的にHPを減らしてゲームオーバー条件にする）
+  // ダメージ計算
   let damage = maxHP * 0.1; // ミスで10%減少
   currentHP -= damage;
   if (currentHP < 0) currentHP = 0;
@@ -380,7 +414,10 @@ function handleMiss() {
 
   mainArea.classList.add('is-stunned');
 
-  if (currentHP <= 0) {
+  // ★変更: Soloモードの場合はHP0によるゲームオーバーを発生させない
+  // （HP表示自体は対戦モード用に残るが、1人プレイ中は無視する）
+  const isSolo = lastConfig && lastConfig.mode === 'solo';
+  if (!isSolo && currentHP <= 0) {
     handleGameOver();
     return;
   }
@@ -405,6 +442,7 @@ function handleComplete() {
 
   let addedScore = Math.floor((difficultySum * 12 + step * 5) * comboMultiplier);
   totalScore += addedScore;
+  showDamageFloat(addedScore); // ★追加
   
   combo++;
   if (combo > maxCombo) {
@@ -412,7 +450,7 @@ function handleComplete() {
   }
 
   // 次の問題へ
-  startNumber = generateNextNumber(startNumber);
+  startNumber = generateNextNumber(startNumber, currentDifficulty);
   currentNumber = startNumber;
   step = 0;
   usedPrimesThisRound = []; // ★追加: 次のラウンドのためにリセット
@@ -618,21 +656,99 @@ function togglePause() {
 if (pauseBtn)  pauseBtn.addEventListener('click',  () => togglePause());
 if (resumeBtn) resumeBtn.addEventListener('click', () => resume());
 
-// キーボード
+// ★変更: Easyモード専用のキー配置（画面のボタンが6個・3列のため、それに合わせた配置にする）
+const KEY_TO_PRIME_EASY = {
+  'a': 2, 's': 3, 'd': 5,
+  'z': 7, 'x': 11, 'c': 13
+};
+
+// 通常モード（Normal/Hard/Extreme）用のキー配置（10個・5列のまま）
+const KEY_TO_PRIME_NORMAL = {
+  'a': 2, 's': 3, 'd': 5, 'f': 7, 'g': 11,
+  'z': 13, 'x': 17, 'c': 19, 'v': 23, 'b': 29
+};
+
+// ★追加: 現在の難易度に応じて使用するキーマップを返す
+function getCurrentKeyMap() {
+  return currentDifficulty === 'easy' ? KEY_TO_PRIME_EASY : KEY_TO_PRIME_NORMAL;
+}
+
 document.addEventListener('keydown', (e) => {
+  // ESCで一時停止
   if (e.key === 'Escape') {
-    // ゲーム中のみ有効（リザルト表示中は無視）
     const gameScreen = document.getElementById('game-screen');
     if (gameScreen && gameScreen.classList.contains('active') && !isGameOver) {
       e.preventDefault();
       pause();
     }
+    return;
   }
+
+  // Enterで再開
   if (e.key === 'Enter') {
     if (isPaused) {
       e.preventDefault();
       resume();
     }
+    return;
+  }
+
+  // 素数ボタンのキー操作（一時停止中・ゲームオーバー中は無効）
+  if (isPaused || isGameOver) return;
+
+  const keyMap = getCurrentKeyMap();
+  const prime = keyMap[e.key.toLowerCase()];
+  if (prime === undefined) return;
+
+  // 対応するボタンを探してクリックと同じ処理を実行
+  const btn = [...primeButtons].find(b => parseInt(b.dataset.prime, 10) === prime);
+  if (btn && !btn.disabled) {
+    btn.classList.add('is-pressed');
+    setTimeout(() => btn.classList.remove('is-pressed'), 120);
+    onPrimeClick(prime, btn);
   }
 });
+// 変更後
+function showDamageFloat(score) {
+  const el = document.createElement('div');
+  el.className = 'damage-float';
+  el.textContent = `+${score}!`;
+
+  // スコアに応じてサイズ・色を変化
+  let fontSize, color, shadow;
+  if (score >= 500) {
+    fontSize = '52px';
+    color = '#ff3868';
+    shadow = '0 0 18px rgba(255,56,104,0.9), 0 2px 4px rgba(0,0,0,0.8)';
+  } else if (score >= 200) {
+    fontSize = '40px';
+    color = '#ffb627';
+    shadow = '0 0 14px rgba(255,182,39,0.9), 0 2px 4px rgba(0,0,0,0.8)';
+  } else if (score >= 100) {
+    fontSize = '32px';
+    color = '#ffb627';
+    shadow = '0 0 10px rgba(255,182,39,0.7), 0 2px 4px rgba(0,0,0,0.8)';
+  } else {
+    fontSize = '22px';
+    color = '#e8edf7';
+    shadow = '0 2px 4px rgba(0,0,0,0.8)';
+  }
+
+  el.style.fontSize = fontSize;
+  el.style.color = color;
+  el.style.textShadow = shadow;
+
+  const container = document.getElementById('mainArea');
+  if (!container) return;
+
+  const containerW = container.clientWidth;
+  const spawnX = randomInt(containerW * 0.2, containerW * 0.75);
+
+  el.style.left = `${spawnX}px`;
+  el.style.top = '55%';
+
+  container.appendChild(el);
+
+  el.addEventListener('animationend', () => el.remove());
+}
 ;
