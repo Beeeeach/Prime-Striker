@@ -112,7 +112,6 @@ function generateNextNumber(prev, difficulty) {
   const minVal = Math.max(prev+1, target - margin);
   const maxVal = Math.min(MAX_NUMBER_CAP, target + margin);
   return generateSmoothInRange(minVal, maxVal, primes);
-
-  // 末尾に追加
-export { generateInitialNumber, generateNextNumber, randomInt, randomFloat, DIFFICULTY_CONFIG };
 }
+
+export { generateInitialNumber, generateNextNumber, randomInt, randomFloat, DIFFICULTY_CONFIG };
