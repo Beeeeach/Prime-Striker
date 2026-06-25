@@ -1,8 +1,10 @@
 (function () {
   "use strict";
+  import { initGame } from './battle.js';
 
   const startScreen = document.getElementById("start-screen");
   const difficultyScreen = document.getElementById("difficulty-screen");
+  const matchingScreen   = document.getElementById("matching-screen");
   const gameScreen = document.getElementById("game-screen");
 
   const btnSolo = document.getElementById("btn-solo");
@@ -38,18 +40,27 @@
   }
 
   function startVsMode() {
-    alert("2人対戦（オンライン）モードは現在準備中です。");
+  // ゲストはオンライン対戦不可
+  if (typeof window.getCurrentOnlineUser === 'function') {
+    const user = window.getCurrentOnlineUser();
+    if (!user) {
+      alert('オンライン対戦にはGoogleログインが必要です。');
+      return;
+    }
   }
+  switchScreen(matchingScreen, startScreen);
+}
 
   function backToStart() {
     switchScreen(startScreen, difficultyScreen);
   }
 
   function backToTitle() {
-    if (typeof window.stopBattle === "function") {
+     if (typeof window.stopBattle === "function") {
       window.stopBattle();
     }
     difficultyScreen?.classList.remove("active");
+    matchingScreen?.classList.remove("active");
     switchScreen(startScreen, gameScreen);
     if (typeof window.updateHighScoreDisplay === "function") {
       window.updateHighScoreDisplay?.();
