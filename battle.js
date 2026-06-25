@@ -1,3 +1,6 @@
+// 先頭に追加
+import { generateInitialNumber, generateNextNumber, randomInt, randomFloat, DIFFICULTY_CONFIG } from './game.js';
+
 // ---------- 1. 状態変数 ----------
 let currentNumber = 0;
 let startNumber = 0;
@@ -13,6 +16,14 @@ let enemyHP = 1000;
 let isStunned = false;
 let isPaused = false;
 let currentDifficulty = 'easy';
+
+// VS モード用状態変数
+let vsMode         = false;
+let vsRoomId       = null;
+let vsMyUid        = null;
+let vsOpponentUid  = null;
+let vsUnsubscribe  = null;
+
 
 
 // ステータス定数
@@ -287,18 +298,26 @@ window.addEventListener('resize', fitNumberFontSize);
 // ===================================================
 window.startBattle = function(config) {
   lastConfig = config;
-  currentDifficulty = config.difficulty || 'easy'; // ★追加
-  const isSolo = config.mode === 'solo';
-  
+  currentDifficulty = config.difficulty || 'easy';
+  vsMode = config.mode === 'vs'; // ★追加
+
+  const isSolo = !vsMode;
+
   if (isSolo) {
     hpRowsArea.classList.add('is-hidden');
     scoreDisplayArea.classList.remove('is-hidden');
+    document.querySelector('.timer-row')?.style.removeProperty('display');
   } else {
     hpRowsArea.classList.remove('is-hidden');
     scoreDisplayArea.classList.add('is-hidden');
+    document.querySelector('.timer-row')?.style.setProperty('display', 'none');
   }
 
   initGame();
+
+  if (vsMode) {
+    initVsBattle(config); // ★追加
+  }
   playBgm(); // ★追加: ゲーム開始と同時にBGM再生
 
   requestAnimationFrame(() => {
@@ -312,7 +331,12 @@ window.stopBattle = function() {
     timerId = null;
   }
   isGameOver = true;
-  stopBgm(); // ★追加: ゲーム中断時にBGM停止
+  vsMode = false;
+  if (vsUnsubscribe) {  // ★追加: Firebaseリスナー解除
+    vsUnsubscribe();
+    vsUnsubscribe = null;
+  }
+  stopBgm();
 };
 function updatePrimeButtons() {
   const config = DIFFICULTY_CONFIG[currentDifficulty] || DIFFICULTY_CONFIG.easy;
@@ -364,7 +388,7 @@ function initGame() {
     clearInterval(timerId);
   }
   hideResultScreen();
-  startTimer();
+  if (!vsMode) startTimer();
 }
 
 // ===================================================
@@ -416,9 +440,13 @@ function handleMiss() {
 
   // ★変更: Soloモードの場合はHP0によるゲームオーバーを発生させない
   // （HP表示自体は対戦モード用に残るが、1人プレイ中は無視する）
-  const isSolo = lastConfig && lastConfig.mode === 'solo';
-  if (!isSolo && currentHP <= 0) {
-    handleGameOver();
+  if (vsMode) {
+    healOpponent(50);  // ミス時に相手を回復
+    pushMyState();
+  }
+
+  if (!issolo && currentHP <= 0) {
+    vsMode ? handleVsGameOver('lose') : handleGameOver();
     return;
   }
 
@@ -441,7 +469,14 @@ function handleComplete() {
   const comboMultiplier = 1 + combo * 0.05; // ★変更: コンボの影響は0.1→0.05に弱め、「少しだけ」反映する程度にする
 
   let addedScore = Math.floor((difficultySum * 12 + step * 5) * comboMultiplier);
-  totalScore += addedScore;
+  
+  if (!vsMode) {
+    totalScore += addedScore;
+  } else {
+    dealDamageToOpponent(addedScore); // 相手にダメージ
+    pushMyState();                    // 自分の状態を同期
+  }
+  
   showDamageFloat(addedScore); // ★追加
   
   combo++;
@@ -750,5 +785,145 @@ function showDamageFloat(score) {
   container.appendChild(el);
 
   el.addEventListener('animationend', () => el.remove());
+}
+// 末尾に追加
+export { initGame, handleGameOver, updateHPUI, updateEnemyHPUI };
+// ===================================================
+// VS モード：Firebaseとのリアルタイム同期
+// ===================================================
+
+// VS バトルの初期化
+async function initVsBattle(config) {
+  vsRoomId = config.roomId;
+  const { getCurrentUser } = await import('./firebase.js');
+  const user = getCurrentUser();
+  if (!user) return;
+
+  vsMyUid = user.uid;
+  const playerUids = Object.keys(config.roomData.players);
+  vsOpponentUid = playerUids.find(uid => uid !== vsMyUid);
+
+  if (!vsOpponentUid) {
+    console.error('相手が見つかりません');
+    return;
+  }
+
+  // 自分の初期状態を送信
+  await pushMyState();
+
+  // 相手の状態を監視開始
+  listenToOpponent();
+
+  // 切断時に自分の状態を更新
+  const { db, ref, onDisconnect, update } = await import('./firebase.js');
+  onDisconnect(ref(db, `rooms/${vsRoomId}/players/${vsMyUid}`))
+    .update({ connected: false });
+}
+
+// 自分の状態をFirebaseに送信
+async function pushMyState() {
+  if (!vsMode || !vsRoomId || !vsMyUid) return;
+  const { db, ref, update } = await import('./firebase.js');
+  await update(ref(db, `rooms/${vsRoomId}/players/${vsMyUid}`), {
+    hp:            currentHP,
+    currentNumber: currentNumber,
+    combo:         combo,
+    connected:     true,
+  });
+}
+
+// 相手の状態をリアルタイムで監視
+async function listenToOpponent() {
+  const { db, ref, onValue } = await import('./firebase.js');
+
+  const opponentRef = ref(db, `rooms/${vsRoomId}/players/${vsOpponentUid}`);
+  const unsubOpponent = onValue(opponentRef, (snap) => {
+    const data = snap.val();
+    if (!data) return;
+
+    // 相手のHPを反映
+    enemyHP = data.hp ?? 1000;
+    updateEnemyHPUI();
+
+    // 相手の現在の数字を表示
+    const enemyNumEl = document.getElementById('enemyCurrentNumber');
+    if (enemyNumEl) enemyNumEl.textContent = data.currentNumber || '---';
+
+    // 相手のコンボを表示
+    const enemyComboEl = document.getElementById('enemyCombo');
+    if (enemyComboEl) enemyComboEl.textContent = data.combo || 0;
+
+    // 相手のHPが0になったら勝利
+    if (data.hp <= 0 && !isGameOver) {
+      handleVsGameOver('win');
+    }
+
+    // 相手が切断したら勝利
+    if (data.connected === false && !isGameOver) {
+      handleVsGameOver('win_disconnect');
+    }
+  });
+
+  vsUnsubscribe = () => { unsubOpponent(); };
+}
+
+// 相手にダメージを与える
+async function dealDamageToOpponent(damage) {
+  if (!vsRoomId || !vsOpponentUid) return;
+  const { db, ref, get, update } = await import('./firebase.js');
+
+  const opponentRef  = ref(db, `rooms/${vsRoomId}/players/${vsOpponentUid}`);
+  const snap         = await get(opponentRef);
+  if (!snap.exists()) return;
+
+  const newHp = Math.max(0, (snap.val().hp ?? 1000) - damage);
+  await update(opponentRef, { hp: newHp });
+
+  if (newHp <= 0) {
+    await update(ref(db, `rooms/${vsRoomId}`), {
+      status: 'finished',
+      winner: vsMyUid,
+    });
+  }
+}
+
+// ミス時に相手を回復させる
+async function healOpponent(amount) {
+  if (!vsRoomId || !vsOpponentUid) return;
+  const { db, ref, get, update } = await import('./firebase.js');
+
+  const opponentRef = ref(db, `rooms/${vsRoomId}/players/${vsOpponentUid}`);
+  const snap        = await get(opponentRef);
+  if (!snap.exists()) return;
+
+  const newHp = Math.min(maxHP, (snap.val().hp ?? 1000) + amount);
+  await update(opponentRef, { hp: newHp });
+}
+
+// VS ゲームオーバー処理
+async function handleVsGameOver(result) {
+  if (isGameOver) return;
+  isGameOver = true;
+
+  if (timerId) { clearInterval(timerId); timerId = null; }
+  stopBgm();
+  primeButtons.forEach(btn => btn.disabled = true);
+
+  if (vsUnsubscribe) { vsUnsubscribe(); vsUnsubscribe = null; }
+
+  // ルームのステータスを終了に
+  if (vsRoomId) {
+    const { db, ref, update } = await import('./firebase.js');
+    await update(ref(db, `rooms/${vsRoomId}`), { status: 'finished' });
+  }
+
+  const messages = {
+    win:            'YOU WIN!',
+    lose:           'YOU LOSE...',
+    win_disconnect: 'WIN (相手が切断)',
+  };
+
+  playSe(EndingSound);
+  showResultScreen(messages[result] || 'FINISH!', false);
 }
 ;
