@@ -1,6 +1,7 @@
+import { getOnlineUser } from './online.js';
+
 (function () {
   "use strict";
-  import { getOnlineUser } from './online.js';
 
   const startScreen = document.getElementById("start-screen");
   const difficultyScreen = document.getElementById("difficulty-screen");
