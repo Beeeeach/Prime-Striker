@@ -1585,10 +1585,56 @@
   letter-spacing: 1px;
   flex-shrink: 0;
 }
+  /* ===== メンテナンス画面 ===== */
+
+#maintenance-screen{
+    position:fixed;
+    inset:0;
+    background:#060912;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    z-index:999999999;
+}
+
+.maintenance-box{
+    max-width:600px;
+    width:90%;
+    padding:40px;
+    text-align:center;
+    background:#0d1322;
+    border:2px solid #ff3868;
+    border-radius:20px;
+    box-shadow:0 0 30px rgba(255,56,104,.4);
+}
+
+.maintenance-box h1{
+    margin-top:0;
+    color:#ff3868;
+    font-family:'Orbitron',sans-serif;
+    font-size:42px;
+}
+
+.maintenance-box p{
+    color:#e8edf7;
+    font-size:20px;
+    line-height:1.8;
+}
 </style>
 </head>
 
 <body>
+  <div id="maintenance-screen">
+  <div class="maintenance-box">
+    <h1>🚧 メンテナンス中</h1>
+    <p>
+      現在、バグ修正のためゲームをプレイできません。<br><br>
+      ご迷惑をおかけしております。<br>
+      修正完了までしばらくお待ちください。
+    </p>
+  </div>
+</div>
+  
   <!-- ▼▼ ログイン画面 ▼▼ -->
 <div id="login-screen" class="screen active">
   <div class="title-wrap">
@@ -1986,7 +2032,27 @@
   </div>
   <!-- ▲▲ リザルト画面ここまで ▲▲ -->
   <audio id="bgm" src="音声/パズルDEポンっ！.mp3" loop preload="auto"></audio>
+<script>
+document.addEventListener("DOMContentLoaded", () => {
 
+    // メンテナンスモード
+    const maintenance = true;
+
+    if (maintenance) {
+
+        // メンテナンス画面以外を全部隠す
+        document.querySelectorAll("body > *").forEach(el=>{
+            if(el.id !== "maintenance-screen"){
+                el.style.display="none";
+            }
+        });
+
+        document.getElementById("maintenance-screen").style.display="flex";
+    }
+
+});
+</script>
+  
 <script type="module" src="game.js"></script>
 <script type="module" src="battle.js"></script>
 <script type="module" src="online.js"></script>
