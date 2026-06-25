@@ -109,7 +109,7 @@ function generateNextNumber(prev, difficulty) {
   }
 
   const margin = Math.max(200, Math.floor(target * 0.25));
-  const minVal = Math.max(2, target - margin);
+  const minVal = Math.max(prev+1, target - margin);
   const maxVal = Math.min(MAX_NUMBER_CAP, target + margin);
   return generateSmoothInRange(minVal, maxVal, primes);
 }
