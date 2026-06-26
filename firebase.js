@@ -2,7 +2,7 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js";
 import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged }
   from "https://www.gstatic.com/firebasejs/12.15.0/firebase-auth.js";
-import { getDatabase, ref, set, get, push, onValue, onDisconnect, serverTimestamp, remove, update }
+import { getDatabase, ref, set, get, push, onValue, onDisconnect, serverTimestamp, remove, update, runTransaction }
   from "https://www.gstatic.com/firebasejs/12.15.0/firebase-database.js";
 
 const firebaseConfig = {
@@ -46,4 +46,4 @@ export function getCurrentUser() {
   return auth.currentUser;
 }
 
-export { db, ref, set, get, push, onValue, onDisconnect, serverTimestamp, remove, update };
+export { db, ref, set, get, push, onValue, onDisconnect, serverTimestamp, remove, update, runTransaction };
