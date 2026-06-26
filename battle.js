@@ -298,8 +298,9 @@ window.addEventListener('resize', fitNumberFontSize);
 // ===================================================
 window.startBattle = function(config) {
   lastConfig = config;
-  currentDifficulty = vsMode ? 'hard' : (config.difficulty || 'easy');
-  vsMode = config.mode === 'vs'; // ★追加
+  vsMode = config.mode === 'vs'; // ★変更: 先にvsModeを確定させる
+  currentDifficulty = vsMode ? 'hard' : (config.difficulty || 'easy'); // ★変更: 確定後のvsModeを使って判定
+
 
   maxHP = vsMode ? 30000 : 1000;
 
