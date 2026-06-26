@@ -831,38 +831,57 @@ async function pushMyState() {
 }
 
 // 相手の状態をリアルタイムで監視
+// 相手の状態（および自分の被ダメージ）をリアルタイムで監視
 async function listenToOpponent() {
   const { db, ref, onValue } = await import('./firebase.js');
 
+  // --- 1. 相手のデータを監視（既存の処理） ---
   const opponentRef = ref(db, `rooms/${vsRoomId}/players/${vsOpponentUid}`);
   const unsubOpponent = onValue(opponentRef, (snap) => {
     const data = snap.val();
     if (!data) return;
 
-    // 相手のHPを反映
     enemyHP = data.hp ?? 1000;
     updateEnemyHPUI();
 
-    // 相手の現在の数字を表示
     const enemyNumEl = document.getElementById('enemyCurrentNumber');
     if (enemyNumEl) enemyNumEl.textContent = data.currentNumber || '---';
 
-    // 相手のコンボを表示
     const enemyComboEl = document.getElementById('enemyCombo');
     if (enemyComboEl) enemyComboEl.textContent = data.combo || 0;
 
-    // 相手のHPが0になったら勝利
     if (data.hp <= 0 && !isGameOver) {
       handleVsGameOver('win');
     }
 
-    // 相手が切断したら勝利
     if (data.connected === false && !isGameOver) {
       handleVsGameOver('win_disconnect');
     }
   });
 
-  vsUnsubscribe = () => { unsubOpponent(); };
+  // --- 2. ★新規追加: 自分のデータを監視（相手からの攻撃・回復の反映用） ---
+  const myRef = ref(db, `rooms/${vsRoomId}/players/${vsMyUid}`);
+  const unsubMyState = onValue(myRef, (snap) => {
+    const data = snap.val();
+    if (!data) return;
+
+    // Firebase側で書き換えられた自分のHPをローカル変数に適用
+    if (data.hp !== undefined) {
+      currentHP = data.hp;
+      updateHPUI(); // 画面のHPバーを更新！
+
+      // 自分のHPが0以下になっていたら負け処理
+      if (currentHP <= 0 && !isGameOver) {
+        handleVsGameOver('lose');
+      }
+    }
+  });
+
+  // リスナー解除用の関数をまとめる
+  vsUnsubscribe = () => { 
+    unsubOpponent(); 
+    unsubMyState(); // ★追加
+  };
 }
 
 // 相手にダメージを与える
