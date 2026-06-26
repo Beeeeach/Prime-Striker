@@ -315,15 +315,7 @@ window.startBattle = function(config) {
     document.querySelector('.timer-row')?.style.setProperty('display', 'none');
   }
 
-  initGame();
-
-  if (vsMode) {
-    // 既存のstartNumberをHard基準で上書き（引数の仕様に合わせて調整してください）
-    startNumber = generateNextNumber(100, 'hard'); // もしくはゲーム仕様に合わせた初期値生成
-    currentNumber = startNumber;
-    updateNumberUI();
-    updatePrimeButtons(); // ボタン配置を念押しで更新
-  }
+  initGame(currentDifficulty);
 
   if (vsMode) {
     initVsBattle(config); // ★追加
@@ -365,9 +357,17 @@ function updatePrimeButtons() {
   }
 }
 
-function initGame() {
+// 引数として difficulty を受け取るように変更
+function initGame(difficulty) {
   playSe(GameStartSound);
-  startNumber = generateInitialNumber();
+  
+  // 引数で指定された難易度、指定がなければ現在の難易度を使う
+  currentDifficulty = difficulty || currentDifficulty;
+
+  // ★修正：generateInitialNumber に難易度を明示的に渡す
+  // （もしgame.jsの仕様が generateInitialNumber(currentDifficulty) であればこのように書き換えます）
+  startNumber = generateInitialNumber(currentDifficulty); 
+  
   currentNumber = startNumber;
   step = 0;
   combo = 0;
@@ -381,7 +381,9 @@ function initGame() {
   isGameOver = false;
   remainingTime = TIME_LIMIT;
 
+  // ここで確実に hard のボタンが配置されます
   updatePrimeButtons();
+  
   updateNumberUI();
   updateHPUI();
   updateEnemyHPUI();
