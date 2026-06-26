@@ -318,6 +318,14 @@ window.startBattle = function(config) {
   initGame();
 
   if (vsMode) {
+    // 既存のstartNumberをHard基準で上書き（引数の仕様に合わせて調整してください）
+    startNumber = generateNextNumber(100, 'hard'); // もしくはゲーム仕様に合わせた初期値生成
+    currentNumber = startNumber;
+    updateNumberUI();
+    updatePrimeButtons(); // ボタン配置を念押しで更新
+  }
+
+  if (vsMode) {
     initVsBattle(config); // ★追加
   }
   playBgm(); // ★追加: ゲーム開始と同時にBGM再生
