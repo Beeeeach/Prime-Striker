@@ -9,7 +9,7 @@ let combo = 0;
 let maxCombo = 0;
 let usedPrimesThisRound = []; // ★追加: 今回の数字を分解する際に実際に使った素数を記録（難易度計算用）
 
-const maxHP = 1000;
+let maxHP = 1000;
 let currentHP = 1000;
 let enemyHP = 1000;
 
@@ -300,6 +300,8 @@ window.startBattle = function(config) {
   lastConfig = config;
   currentDifficulty = config.difficulty || 'easy';
   vsMode = config.mode === 'vs'; // ★追加
+
+  maxHP = vsMode ? 30000 : 1000;
 
   const isSolo = !vsMode;
 
@@ -841,7 +843,7 @@ async function listenToOpponent() {
     const data = snap.val();
     if (!data) return;
 
-    enemyHP = data.hp ?? 1000;
+    enemyHP = data.hp ?? 30000;
     updateEnemyHPUI();
 
     const enemyNumEl = document.getElementById('enemyCurrentNumber');
@@ -892,7 +894,7 @@ async function dealDamageToOpponent(damage) {
   const opponentHpRef = ref(db, `rooms/${vsRoomId}/players/${vsOpponentUid}/hp`);
 
   const result = await runTransaction(opponentHpRef, (currentHp) => {
-    if (currentHp === null) return 1000; // 初期値
+    if (currentHp === null) return 30000; // 初期値
     return Math.max(0, currentHp - damage);
   });
 
@@ -914,7 +916,7 @@ async function healOpponent(amount) {
   const opponentHpRef = ref(db, `rooms/${vsRoomId}/players/${vsOpponentUid}/hp`);
 
   await runTransaction(opponentHpRef, (currentHp) => {
-    if (currentHp === null) return 1000;
+    if (currentHp === null) return 30000;
     return Math.min(maxHP, currentHp + amount);
   });
 }
