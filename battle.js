@@ -445,7 +445,7 @@ function handleMiss() {
     pushMyState();
   }
 
-  if (!issolo && currentHP <= 0) {
+  if (vsMode && currentHP <= 0) {
     vsMode ? handleVsGameOver('lose') : handleGameOver();
     return;
   }
