@@ -451,9 +451,21 @@ function handleMiss() {
   }
 
   setTimeout(() => {
-    if (!isPaused) {           // 一時停止中はスタン解除しない
+    if (!isPaused && !isGameOver) {
       isStunned = false;
       mainArea.classList.remove('is-stunned');
+    } else if (isPaused) {
+      // 一時停止中だった場合、再開時に解除できるようにフラグだけ立てる
+      const checkInterval = setInterval(() => {
+        if (!isPaused) {
+          isStunned = false;
+          mainArea.classList.remove('is-stunned');
+          clearInterval(checkInterval);
+        }
+        if (isGameOver) {
+          clearInterval(checkInterval);
+        }
+      }, 100);
     }
   }, 500);
 }
@@ -870,14 +882,16 @@ async function listenToOpponent() {
 // 相手にダメージを与える
 async function dealDamageToOpponent(damage) {
   if (!vsRoomId || !vsOpponentUid) return;
-  const { db, ref, get, update } = await import('./firebase.js');
+  const { db, ref, runTransaction, update } = await import('./firebase.js');
 
-  const opponentRef  = ref(db, `rooms/${vsRoomId}/players/${vsOpponentUid}`);
-  const snap         = await get(opponentRef);
-  if (!snap.exists()) return;
+  const opponentHpRef = ref(db, `rooms/${vsRoomId}/players/${vsOpponentUid}/hp`);
 
-  const newHp = Math.max(0, (snap.val().hp ?? 1000) - damage);
-  await update(opponentRef, { hp: newHp });
+  const result = await runTransaction(opponentHpRef, (currentHp) => {
+    if (currentHp === null) return 1000; // 初期値
+    return Math.max(0, currentHp - damage);
+  });
+
+  const newHp = result.snapshot.val();
 
   if (newHp <= 0) {
     await update(ref(db, `rooms/${vsRoomId}`), {
@@ -890,14 +904,14 @@ async function dealDamageToOpponent(damage) {
 // ミス時に相手を回復させる
 async function healOpponent(amount) {
   if (!vsRoomId || !vsOpponentUid) return;
-  const { db, ref, get, update } = await import('./firebase.js');
+  const { db, ref, runTransaction } = await import('./firebase.js');
 
-  const opponentRef = ref(db, `rooms/${vsRoomId}/players/${vsOpponentUid}`);
-  const snap        = await get(opponentRef);
-  if (!snap.exists()) return;
+  const opponentHpRef = ref(db, `rooms/${vsRoomId}/players/${vsOpponentUid}/hp`);
 
-  const newHp = Math.min(maxHP, (snap.val().hp ?? 1000) + amount);
-  await update(opponentRef, { hp: newHp });
+  await runTransaction(opponentHpRef, (currentHp) => {
+    if (currentHp === null) return 1000;
+    return Math.min(maxHP, currentHp + amount);
+  });
 }
 
 // VS ゲームオーバー処理
