@@ -451,23 +451,9 @@ function handleMiss() {
   }
 
   setTimeout(() => {
-    if (!isPaused && !isGameOver) {
-      isStunned = false;
-      mainArea.classList.remove('is-stunned');
-    } else if (isPaused) {
-      // 一時停止中だった場合、再開時に解除できるようにフラグだけ立てる
-      const checkInterval = setInterval(() => {
-        if (!isPaused) {
-          isStunned = false;
-          mainArea.classList.remove('is-stunned');
-          clearInterval(checkInterval);
-        }
-        if (isGameOver) {
-          clearInterval(checkInterval);
-        }
-      }, 100);
-    }
-  }, 500);
+  isStunned = false;
+  mainArea.classList.remove('is-stunned');
+}, 500);
 }
 
 // ===================================================
