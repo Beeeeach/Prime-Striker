@@ -1585,13 +1585,123 @@
   letter-spacing: 1px;
   flex-shrink: 0;
 }
- 
+/* ============ レーティング表示（リザルト画面） ============ */
+.result-rating-section {
+  margin: 4px 0 16px;
+  padding: 16px;
+  background: #0a0f1c;
+  border: 1px solid var(--accent);
+  border-radius: 12px;
+  box-shadow: 0 0 14px rgba(255,182,39,0.2);
+}
+
+.result-rating-section.is-hidden {
+  display: none;
+}
+
+.result-rating-label {
+  font-family: var(--font-display);
+  font-size: 10px;
+  letter-spacing: 2px;
+  color: var(--text-dim);
+  margin-bottom: 8px;
+}
+
+.result-rating-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+
+.result-rating-before {
+  font-family: var(--font-number);
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--text-dim);
+}
+
+.result-rating-arrow {
+  font-size: 18px;
+  color: var(--text-dim);
+}
+
+.result-rating-after {
+  font-family: var(--font-number);
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--accent);
+  text-shadow: 0 0 12px rgba(255,182,39,0.6);
+}
+
+.rating-diff {
+  font-family: var(--font-display);
+  font-size: 18px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 6px;
+}
+
+.rating-diff.is-positive {
+  color: var(--self-color);
+  background: rgba(0,230,195,0.1);
+  text-shadow: 0 0 10px var(--self-glow);
+}
+
+.rating-diff.is-negative {
+  color: var(--enemy-color);
+  background: rgba(255,56,104,0.1);
+  text-shadow: 0 0 10px var(--enemy-glow);
+}
+
+.result-rating-bonuses {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-top: 10px;
+}
+
+.rating-bonus-tag {
+  font-family: var(--font-display);
+  font-size: 11px;
+  letter-spacing: 1px;
+  color: var(--accent);
+  background: rgba(255,182,39,0.08);
+  border: 1px solid rgba(255,182,39,0.3);
+  border-radius: 6px;
+  padding: 4px 10px;
+  display: block;
+  text-align: center;
+}
+
+/* ============ ユーザー情報のレーティングバッジ ============ */
+.user-rating-badge {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: rgba(255,182,39,0.08);
+  border: 1px solid var(--accent);
+  border-radius: 8px;
+  padding: 2px 8px;
+}
+
+.user-rating-label {
+  font-family: var(--font-display);
+  font-size: 8px;
+  letter-spacing: 1px;
+  color: var(--text-dim);
+}
+
+.user-rating-value {
+  font-family: var(--font-number);
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--accent);
+}
 </style>
 </head>
 
 <body>
-
-  
   <!-- ▼▼ ログイン画面 ▼▼ -->
 <div id="login-screen" class="screen active">
   <div class="title-wrap">
@@ -1662,6 +1772,10 @@
 <div id="user-info" class="user-info is-hidden">
   <img id="user-avatar" class="user-avatar" src="" alt="">
   <span id="user-name" class="user-name"></span>
+  <span class="user-rating-badge">
+    <span class="user-rating-label">RATING</span>
+    <span class="user-rating-value" id="userRatingValue">1200</span>
+  </span>
   <button id="btn-logout" class="logout-btn">ログアウト</button>
 </div>
 <!-- ▲▲ ユーザー情報ここまで ▲▲ -->
@@ -1977,6 +2091,17 @@
           <span class="result-stat__value" id="resultMaxCombo">0</span>
         </div>
       </div>
+      <!-- result-stats の直後に追加 -->
+      <div class="result-rating-section is-hidden" id="resultRatingSection">
+        <div class="result-rating-label">RATING</div>
+        <div class="result-rating-row">
+          <span class="result-rating-before" id="ratingBefore">1200</span>
+          <span class="result-rating-arrow">→</span>
+          <span class="result-rating-after" id="ratingAfter">1200</span>
+          <span class="rating-diff" id="ratingDiff">+0</span>
+        </div>
+        <div class="result-rating-bonuses" id="ratingBonuses"></div>
+      </div>
       <p class="new-record-badge is-hidden" id="newRecordBadge">⚡ NEW RECORD ⚡</p>
 
       <p class="result-message" id="resultMessage">ゲーム終了</p>
@@ -1989,7 +2114,8 @@
   </div>
   <!-- ▲▲ リザルト画面ここまで ▲▲ -->
   <audio id="bgm" src="音声/パズルDEポンっ！.mp3" loop preload="auto"></audio>
-  
+
+<script type="module" src="rating.js"></script>
 <script type="module" src="game.js"></script>
 <script type="module" src="battle.js"></script>
 <script type="module" src="online.js"></script>
