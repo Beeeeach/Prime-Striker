@@ -81,11 +81,20 @@ import { getOnlineUser } from './online.js';
   btnExtreme?.addEventListener("click", () => startWithDifficulty("extreme"));
   btnBackToStart?.addEventListener("click", backToStart);
 
+  let autoReturnTimer = null;
+
   window.onGameOver = function (result) {
-    // ゲームオーバー後に少し余韻を残してから戻る
-    setTimeout(() => {
-        backToTitle();
+    autoReturnTimer = setTimeout(() => {
+      backToTitle();
     }, 3000);
+  };
+
+  // リトライ時にタイマーをキャンセルできるよう公開
+  window.cancelAutoReturn = function () {
+    if (autoReturnTimer) {
+      clearTimeout(autoReturnTimer);
+      autoReturnTimer = null;
+    }
   };
 
   document.addEventListener("DOMContentLoaded", () => {
