@@ -3,22 +3,22 @@ const PRIME_LIST = [2, 3, 5, 7, 11, 13, 17, 19, 23, 29];
 const DIFFICULTY_CONFIG = {
   easy: {
     primes:  [2, 3, 5, 7, 11, 13],
-    initMin: 30,    initMax: 150,
+    initMin: 30,    initMax: 100,
     multMin: 1.01,   multMax: 1.2,
   },
   normal: {
     primes:  [2, 3, 5, 7, 11, 13, 17, 19],
-    initMin: 500,   initMax: 2000,
+    initMin: 30,   initMax: 100,
     multMin: 1.1,   multMax: 1.5,
   },
   hard: {
     primes:  [2, 3, 5, 7, 11, 13, 17, 19, 23, 29],
-    initMin: 3000,  initMax: 8000,
+    initMin: 30,  initMax: 100,
     multMin: 1.3,   multMax: 1.8,
   },
   extreme: {
     primes:  [2, 3, 5, 7, 11, 13, 17, 19, 23, 29],
-    initMin: 10000, initMax: 30000,
+    initMin: 30, initMax: 100,
     multMin: 1.5,   multMax: 2.4,
   },
 };
