@@ -688,14 +688,18 @@ primeButtons.forEach(btn => {
 // ★新規追加
 if (btnRetry) {
   btnRetry.addEventListener('click', () => {
+    // 自動タイトル遷移をキャンセル
+    if (typeof window.cancelAutoReturn === 'function') {
+      window.cancelAutoReturn();
+    }
+
     if (lastConfig && lastConfig.mode === 'vs') {
-      // ★追加: VSモードの場合はマッチング画面に戻し、再マッチングさせる
       hideResultScreen();
       if (typeof window.retryVsMatch === 'function') {
         window.retryVsMatch(lastConfig);
       }
     } else if (lastConfig) {
-      window.startBattle(lastConfig); // Soloモードはそのまま再開
+      window.startBattle(lastConfig);
     } else {
       initGame();
     }
