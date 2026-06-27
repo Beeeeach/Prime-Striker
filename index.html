@@ -161,11 +161,16 @@
   }
   
   .hp-row{
-    display: grid;
-    grid-template-columns: 52px 1fr 70px;
-    align-items: center;
-    gap: 8px;
-  }
+  display: grid;
+  grid-template-columns: 52px 1fr 70px;
+  align-items: center;
+  gap: 8px;
+}
+
+/* ★新規追加: 敵情報行（ニックネーム表示）だけ列幅を変更し、名前エリアを広げる */
+.hp-row.enemy-row{
+  grid-template-columns: 92px 1fr 70px; /* 52px → 92px に拡大、HPバー(1fr)が縮む分を吸収 */
+}
 
   .hp-rows.is-hidden {
     display: none !important;
@@ -179,10 +184,11 @@
   }
   /* ★新規追加: 相手のニックネーム表示（hp-tagを少し拡張） */
 .enemy-info-tag{
-  max-width: 52px;
+  max-width: 88px; /* ★変更: 列幅の拡大に合わせて広げる */
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  font-size: 12px; /* ★追加: 少し大きくして視認性を上げる */
 }
 
 /* ★新規追加: 相手のレーティング表示 */
@@ -1733,6 +1739,60 @@
   font-weight: 700;
   color: var(--accent);
 }
+/* ============ ニックネーム設定モーダル ============ */
+.nickname-panel {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  width: 100%;
+  max-width: 360px;
+  padding: 0 24px;
+}
+
+.nickname-title {
+  font-family: var(--font-display);
+  font-size: 1.6rem;
+  letter-spacing: 2px;
+  color: var(--self-color);
+  text-shadow: 0 0 10px var(--self-glow);
+  margin: 0;
+  text-align: center;
+}
+
+.nickname-desc {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  color: var(--text-dim);
+  text-align: center;
+  margin: 0;
+}
+
+.nickname-input {
+  width: 100%;
+  background: #0a0f1c;
+  border: 1px solid var(--self-color);
+  border-radius: 10px;
+  padding: 14px 16px;
+  color: var(--text-main);
+  font-family: var(--font-display);
+  font-size: 1.2rem;
+  letter-spacing: 2px;
+  text-align: center;
+  outline: none;
+  transition: box-shadow 0.15s ease;
+}
+
+.nickname-input:focus {
+  box-shadow: 0 0 14px var(--self-glow);
+}
+
+.nickname-hint {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-dim);
+  margin: -8px 0 0;
+}
 </style>
 </head>
 
@@ -1757,6 +1817,20 @@
   </div>
 </div>
 <!-- ▲▲ ログイン画面ここまで ▲▲ -->
+
+ <!-- ▼▼ ニックネーム設定モーダル ▼▼ -->
+<div id="nickname-modal" class="screen">
+  <div class="nickname-panel">
+    <h2 class="nickname-title">ニックネームを設定</h2>
+    <p class="nickname-desc">対戦相手に表示される名前を入力してください</p>
+    <input type="text" id="nickname-input" class="nickname-input"
+      placeholder="例：PrimeKing" maxlength="16">
+    <p class="nickname-hint">2〜16文字で入力してください</p>
+    <button id="btn-nickname-save" class="login-btn">決定</button>
+  </div>
+</div>
+<!-- ▲▲ ニックネーム設定モーダルここまで ▲▲ -->
+
   <div id="start-screen" class="screen">
     <!-- ★追加: 左上の音量設定アイコン＆パネル -->
   <div class="sound-settings" id="soundSettings">
