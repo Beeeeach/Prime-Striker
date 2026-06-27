@@ -442,7 +442,7 @@ function handleMiss() {
   combo = 0;
 
   // ダメージ計算
-  let damage = maxHP * 0.1; // ミスで10%減少
+  let damage = maxHP * 0.02; // ミスで2%減少
   currentHP -= damage;
   if (currentHP < 0) currentHP = 0;
 
