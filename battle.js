@@ -1061,13 +1061,6 @@ async function handleVsGameOver(result) {
 
   playSe(EndingSound);
   showResultScreen(messages[result] || 'FINISH!', false, ratingData);
-  
-  if (typeof window.onGameOver === 'function') {
-  window.onGameOver({
-    result: result,
-    ratingData: ratingData, // 更新後のレーティング情報も渡す
-  });
-}
 }
 
 function animateRating(from, to) {
