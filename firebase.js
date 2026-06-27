@@ -51,6 +51,11 @@ export async function getUserData(uid) {
   const snap = await get(userRef);
   return snap.exists() ? snap.val() : null;
 }
+// ニックネームを更新する
+export async function updateNickname(uid, nickname) {
+  const userRef = ref(db, `users/${uid}`);
+  await update(userRef, { displayName: nickname });
+}
 
 export async function initUserIfNeeded(uid, displayName) {
   const userRef = ref(db, `users/${uid}`);
@@ -82,4 +87,4 @@ export async function updateUserStats(uid, isWin, newRating) {
 
 const DEFAULT_RATING = 1200;
 
-export { db, ref, set, get, push, onValue, onDisconnect, serverTimestamp, remove, update, runTransaction };
+export { db, ref, set, get, push, onValue, onDisconnect, serverTimestamp, remove, update, runTransaction,updateNickname };
