@@ -49,6 +49,9 @@ const primeButtons = document.querySelectorAll('.prime-btn');
 const mainArea = document.getElementById('mainArea');
 const selfHpRow = document.getElementById('selfHpRow');
 const enemyHpRow = document.getElementById('enemyHpRow');
+const enemyNicknameTag = document.getElementById('enemyNicknameTag'); // ★追加
+const enemyRatingRow = document.getElementById('enemyRatingRow');     // ★追加
+const enemyRatingValue = document.getElementById('enemyRatingValue'); // ★追加
 const hpRowsArea = document.getElementById('hp-rows');
 const timerValueDisplay = document.getElementById('timerValue');
 const resultScreen = document.getElementById('result-screen');
@@ -370,6 +373,7 @@ function initGame(difficulty) {
   startNumber = generateInitialNumber(currentDifficulty); 
   
   currentNumber = startNumber;
+   updateEnemyInfoUI(null, null); 
   step = 0;
   combo = 0;
   maxCombo = 0
@@ -586,6 +590,20 @@ function updateEnemyHPUI() {
   if (text) text.textContent = `${Math.ceil(enemyHP)}/${maxHP}`;
 }
 
+function updateEnemyInfoUI(nickname, rating) {
+  if (enemyNicknameTag) {
+    enemyNicknameTag.textContent = nickname || 'ENEMY';
+  }
+  if (enemyRatingRow && enemyRatingValue) {
+    if (rating !== undefined && rating !== null) {
+      enemyRatingValue.textContent = rating;
+      enemyRatingRow.classList.remove('is-hidden');
+    } else {
+      enemyRatingRow.classList.add('is-hidden');
+    }
+  }
+}
+
 function updateComboUI() {
   if (comboDisplay) {
     comboDisplay.textContent = combo;
@@ -670,10 +688,16 @@ primeButtons.forEach(btn => {
 // ★新規追加
 if (btnRetry) {
   btnRetry.addEventListener('click', () => {
-    if (lastConfig) {
-      window.startBattle(lastConfig); // 直前と同じモードで再開
+    if (lastConfig && lastConfig.mode === 'vs') {
+      // ★追加: VSモードの場合はマッチング画面に戻し、再マッチングさせる
+      hideResultScreen();
+      if (typeof window.retryVsMatch === 'function') {
+        window.retryVsMatch(lastConfig);
+      }
+    } else if (lastConfig) {
+      window.startBattle(lastConfig); // Soloモードはそのまま再開
     } else {
-      initGame(); // configが無い場合のフォールバック
+      initGame();
     }
   });
 }
@@ -847,6 +871,22 @@ async function initVsBattle(config) {
   if (!vsOpponentUid) {
     console.error('相手が見つかりません');
     return;
+  }
+
+  // ★追加: roomData内にすでにある相手のニックネームを即時表示（レーティングはまだ無いので一旦非表示）
+  const opponentRoomInfo = config.roomData.players[vsOpponentUid];
+  updateEnemyInfoUI(opponentRoomInfo?.nickname, null);
+
+  // ★追加: Firebaseのユーザーデータから相手の現在のレーティングを取得して表示
+  try {
+    const { getUserData } = await import('./firebase.js');
+    const opponentUserData = await getUserData(vsOpponentUid);
+    updateEnemyInfoUI(
+      opponentRoomInfo?.nickname,
+      opponentUserData?.rating ?? 1200
+    );
+  } catch (e) {
+    console.error('相手のレーティング取得エラー:', e);
   }
 
   // 自分の初期状態を送信
@@ -1040,4 +1080,20 @@ function animateRating(from, to) {
   }
   requestAnimationFrame(tick);
 }
+
+window.updateMyRatingDisplay = async function () {
+  const ratingDisplayEl = document.getElementById('userRatingValue');
+  if (!ratingDisplayEl) return;
+
+  try {
+    const { getCurrentUser, getUserData } = await import('./firebase.js');
+    const user = getCurrentUser();
+    if (!user) return; // ログインしていない場合は何もしない
+
+    const userData = await getUserData(user.uid);
+    ratingDisplayEl.textContent = userData?.rating ?? 1200;
+  } catch (e) {
+    console.error('レーティング表示の更新エラー:', e);
+  }
+};
 ;
