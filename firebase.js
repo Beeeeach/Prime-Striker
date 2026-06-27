@@ -82,5 +82,4 @@ export async function updateUserStats(uid, isWin, newRating) {
 
 const DEFAULT_RATING = 1200;
 
-export { db, ref, set, get, push, onValue, onDisconnect, serverTimestamp, remove, update, runTransaction,
-         getUserData, initUserIfNeeded, updateUserStats };
+export { db, ref, set, get, push, onValue, onDisconnect, serverTimestamp, remove, update, runTransaction };
