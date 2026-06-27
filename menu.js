@@ -66,6 +66,9 @@ import { getOnlineUser } from './online.js';
     if (typeof window.updateHighScoreDisplay === "function") {
       window.updateHighScoreDisplay?.();
     }
+    if (typeof window.updateMyRatingDisplay === "function") { // ★追加
+    window.updateMyRatingDisplay();
+    }
   }
 
   btnSolo.addEventListener("click", startSoloMode);
