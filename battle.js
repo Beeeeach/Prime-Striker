@@ -679,10 +679,39 @@ if (btnRetry) {
 }
 
 if (btnToTitle) {
-  btnToTitle.addEventListener('click', () => {
+  // ★修正：最新データを非同期で取得するため async を追加
+  btnToTitle.addEventListener('click', async () => {
     window.stopBattle();
     hideResultScreen();
     updateHighScoreDisplay();
+
+    // ★新規追加：ホーム画面に戻るタイミングで最新のレーティングを反映する
+    try {
+      const { getCurrentUser: getUser, getUserData } = await import('./firebase.js');
+      const user = getUser();
+      if (user) {
+        const userData = await getUserData(user.uid);
+        if (userData && userData.rating !== undefined) {
+          // ホーム画面でレーティングを表示しているDOM要素を取得
+          // （お使いのHTMLのID名に合わせて適宜調整してください。一般的な候補を自動で探します）
+          const ratingEl = document.getElementById('homeRating') || 
+                           document.getElementById('userRating') || 
+                           document.getElementById('playerRating') ||
+                           document.getElementById('menuRating'); // ←あなたのHTMLのID名がこれら以外ならここに追加してください
+          
+          if (ratingEl) {
+            ratingEl.textContent = Math.floor(userData.rating);
+          }
+
+          // もし menu.js 側などで「メニューの表示を一括更新する関数」がwindowに公開されている場合はそれも呼ぶ
+          if (typeof window.updateMenuRating === 'function') {
+            window.updateMenuRating(userData.rating);
+          }
+        }
+      }
+    } catch (e) {
+      console.error('ホーム画面のレーティング更新に失敗しました:', e);
+    }
 
     if (typeof window.onGameOver === 'function') {
       // すでにhandleGameOver内で呼ばれているため、ここでは呼ばない
