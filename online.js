@@ -81,9 +81,21 @@ function updateUserInfoUI(user) {
 
 // ログイン・ゲスト時にUI更新
 const _onLoggedIn = onLoggedIn;
-function onLoggedInWithUI(user) {
+async function onLoggedInWithUI(user) {
   _onLoggedIn(user);
   updateUserInfoUI(user);
+
+  // Firebaseにユーザーデータを初期化（初回のみ）
+  try {
+    const { initUserIfNeeded, getUserData } = await import('./firebase.js');
+    await initUserIfNeeded(user.uid, user.displayName);
+
+    // レーティングをUI表示
+    const data = await getUserData(user.uid);
+    updateRatingDisplay(data?.rating ?? 1200);
+  } catch (e) {
+    console.error('ユーザー初期化エラー:', e);
+  }
 }
 
 btnLogout?.addEventListener('click', async () => {
@@ -344,3 +356,9 @@ btnBackFromMatching?.addEventListener('click', async () => {
 // ============ 外部公開 ============
 window.getCurrentOnlineUser = () => currentUser;
 window.currentRoomId        = () => currentRoomId;
+
+// ============ レーティング表示 ============
+function updateRatingDisplay(rating) {
+  const el = document.getElementById('userRatingValue');
+  if (el) el.textContent = rating;
+}
