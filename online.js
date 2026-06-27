@@ -68,12 +68,12 @@ const userAvatar = document.getElementById('user-avatar');
 const userName   = document.getElementById('user-name');
 const btnLogout  = document.getElementById('btn-logout');
 
-function updateUserInfoUI(user) {
+function updateUserInfoUI(user, nickname = null) {
   if (!userInfo) return;
   if (user) {
     userInfo.classList.remove('is-hidden');
     if (userAvatar) userAvatar.src = user.photoURL || '';
-    if (userName)   userName.textContent = user.displayName || 'プレイヤー';
+    if (userName)   userName.textContent = nickname || user.displayName || 'プレイヤー';
   } else {
     userInfo.classList.add('is-hidden');
   }
@@ -83,16 +83,21 @@ function updateUserInfoUI(user) {
 const _onLoggedIn = onLoggedIn;
 async function onLoggedInWithUI(user) {
   _onLoggedIn(user);
-  updateUserInfoUI(user);
 
-  // Firebaseにユーザーデータを初期化（初回のみ）
   try {
     const { initUserIfNeeded, getUserData } = await import('./firebase.js');
     await initUserIfNeeded(user.uid, user.displayName);
-
-    // レーティングをUI表示
     const data = await getUserData(user.uid);
+
+    // Firebaseに保存されたニックネームがあればそちらを使う
+    const nickname = data?.displayName || user.displayName || 'Player';
+    updateUserInfoUI(user, nickname);
     updateRatingDisplay(data?.rating ?? 1200);
+
+    // 初回ログイン（ニックネーム未設定）の場合はニックネーム設定画面へ
+    if (!data?.nicknameSet) {
+      showNicknameModal(user);
+    }
   } catch (e) {
     console.error('ユーザー初期化エラー:', e);
   }
@@ -377,3 +382,100 @@ function updateRatingDisplay(rating) {
   const el = document.getElementById('userRatingValue');
   if (el) el.textContent = rating;
 }
+// ============ ニックネーム設定 ============
+const nicknameModal     = document.getElementById('nickname-modal');
+const nicknameInput     = document.getElementById('nickname-input');
+const btnNicknameSave   = document.getElementById('btn-nickname-save');
+
+function showNicknameModal(user) {
+  // スタート画面を隠してニックネーム設定画面を表示
+  startScreen?.classList.remove('active');
+  nicknameModal?.classList.add('active');
+
+  // Googleアカウント名をデフォルト値として入れる
+  if (nicknameInput) nicknameInput.value = user.displayName || '';
+}
+
+async function saveNickname(user) {
+  const nickname = nicknameInput?.value?.trim();
+  if (!nickname || nickname.length < 2) {
+    alert('2文字以上で入力してください。');
+    return;
+  }
+
+  try {
+    const { updateNickname, getUserData, update, ref, db } = await import('./firebase.js');
+    await updateNickname(user.uid, nickname);
+
+    // nicknameSetフラグを立てる
+    const { db: database, ref: dbRef, update: dbUpdate } = await import('./firebase.js');
+    const { getDatabase } = await import('https://www.gstatic.com/firebasejs/12.15.0/firebase-database.js');
+    const { ref: r, update: u } = await import('./firebase.js');
+    await u(r(db, `users/${user.uid}`), { nicknameSet: true });
+
+    // UIを更新
+    if (userName) userName.textContent = nickname;
+
+    // スタート画面に戻る
+    nicknameModal?.classList.remove('active');
+    startScreen?.classList.add('active');
+
+  } catch (e) {
+    console.error('ニックネーム保存エラー:', e);
+    alert('保存に失敗しました。もう一度お試しください。');
+  }
+}
+
+btnNicknameSave?.addEventListener('click', () => {
+  const user = getFirebaseUser();
+  if (user) saveNickname(user);
+});
+
+// ============ 設定モーダルからのニックネーム変更 ============
+const settingsNicknameInput = document.getElementById('settings-nickname-input');
+const btnSettingsNicknameSave = document.getElementById('btn-settings-nickname-save');
+const settingsNicknameHint  = document.getElementById('settings-nickname-hint');
+
+btnSettingsNicknameSave?.addEventListener('click', async () => {
+  const user = getFirebaseUser();
+  if (!user) return;
+
+  const nickname = settingsNicknameInput?.value?.trim();
+  if (!nickname || nickname.length < 2) {
+    if (settingsNicknameHint) {
+      settingsNicknameHint.textContent = '⚠️ 2文字以上で入力してください。';
+      settingsNicknameHint.style.color = 'var(--enemy-color)';
+    }
+    return;
+  }
+
+  try {
+    const { updateNickname, db, ref, update } = await import('./firebase.js');
+    await updateNickname(user.uid, nickname);
+    await update(ref(db, `users/${user.uid}`), { nicknameSet: true });
+
+    if (userName) userName.textContent = nickname;
+    if (settingsNicknameHint) {
+      settingsNicknameHint.textContent = '✅ 変更しました！';
+      settingsNicknameHint.style.color = 'var(--self-color)';
+    }
+  } catch (e) {
+    console.error('ニックネーム変更エラー:', e);
+    if (settingsNicknameHint) {
+      settingsNicknameHint.textContent = '⚠️ 保存に失敗しました。';
+      settingsNicknameHint.style.color = 'var(--enemy-color)';
+    }
+  }
+});
+
+// 設定モーダルを開いたとき現在のニックネームを入力欄に反映
+const btnSettings = document.getElementById('btn-settings');
+btnSettings?.addEventListener('click', async () => {
+  const user = getFirebaseUser();
+  if (!user || !settingsNicknameInput) return;
+  try {
+    const { getUserData } = await import('./firebase.js');
+    const data = await getUserData(user.uid);
+    settingsNicknameInput.value = data?.displayName || user.displayName || '';
+  } catch (e) {}
+});
