@@ -159,19 +159,18 @@ function detachRoomListener() {
 }
 
 // ============ マッチング成立時の処理 ============
-function onMatchFound(roomId, roomData) {
+function onMatchFound(roomId, roomData, matchType) {
   detachRoomListener();
   currentRoomId = roomId;
   hideWaiting();
 
-  // game-screenに切り替えてオンライン対戦開始
   const gameScreen    = document.getElementById('game-screen');
   if (matchingScreen) matchingScreen.classList.remove('active');
   if (gameScreen)     gameScreen.classList.add('active');
 
   if (typeof window.playBgm === 'function') window.playBgm();
   if (typeof window.startBattle === 'function') {
-    window.startBattle({ mode: 'vs', roomId, roomData });
+    window.startBattle({ mode: 'vs', roomId, roomData, matchType }); // ★追加: matchTypeを渡す
   }
 }
 
@@ -209,7 +208,7 @@ async function startRandomMatch() {
     await set(ref(db, `rooms/${roomId}/status`), 'playing');
 
     const roomSnapshot = await get(roomRef);
-    onMatchFound(roomId, roomSnapshot.val());
+    onMatchFound(roomId, roomSnapshot.val(), 'random');
 
   } else {
     // 待機中のルームがない → 新規作成して待機
@@ -246,7 +245,7 @@ async function startRandomMatch() {
       if (!data) return;
       if (data.status === 'playing' && data.players &&
           Object.keys(data.players).length >= 2) {
-        onMatchFound(roomId, data);
+        onMatchFound(roomId, data, 'random');
       }
     });
   }
@@ -288,7 +287,7 @@ async function createRoom() {
     if (!data) return;
     if (data.status === 'playing' && data.players &&
         Object.keys(data.players).length >= 2) {
-      onMatchFound(roomId, data);
+      onMatchFound(roomId, data, 'room');
     }
   });
 }
@@ -328,7 +327,7 @@ async function joinRoom(code) {
   await update(roomRef, { status: 'playing' });
 
   const updatedSnap = await get(roomRef);
-  onMatchFound(roomId, updatedSnap.val());
+  onMatchFound(roomId, updatedSnap.val(), 'room');
 }
 
 // ============ マッチングキャンセル ============
@@ -356,6 +355,22 @@ btnBackFromMatching?.addEventListener('click', async () => {
 // ============ 外部公開 ============
 window.getCurrentOnlineUser = () => currentUser;
 window.currentRoomId        = () => currentRoomId;
+
+// ★新規追加: 「もう一度対戦」が押された時に呼ばれる
+window.retryVsMatch = async function (lastConfig) {
+  // ゲーム画面からマッチング画面に戻す
+  const gameScreen = document.getElementById('game-screen');
+  gameScreen?.classList.remove('active');
+  matchingScreen?.classList.add('active');
+
+  if (lastConfig.matchType === 'room') {
+    // ルーム対戦だった場合：同じルームコードで新しいルームを作り直し、再度待機する
+    await createRoom();
+  } else {
+    // ランダムマッチだった場合：新しい相手を探し直す
+    await startRandomMatch();
+  }
+};
 
 // ============ レーティング表示 ============
 function updateRatingDisplay(rating) {
