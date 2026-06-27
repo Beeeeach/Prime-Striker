@@ -597,7 +597,7 @@ function updateScoreUI() {
     scoreDisplayValue.textContent = Math.floor(totalScore);
   }
 }
-function showResultScreen(message, isNewRecord) {
+function showResultScreen(message, isNewRecord, ratingData = null) {
   if (!resultScreen) return;
   if (resultMessage) resultMessage.textContent = message;
   if (resultScoreValue) resultScoreValue.textContent = Math.floor(totalScore);
@@ -608,6 +608,36 @@ function showResultScreen(message, isNewRecord) {
     newRecordBadge.classList.toggle('is-hidden', !isNewRecord);
   }
 
+  // ===== レーティング表示（VSモードのみ） =====
+  const ratingSection = document.getElementById('resultRatingSection');
+  if (ratingSection) {
+    if (ratingData) {
+      ratingSection.classList.remove('is-hidden');
+
+      const beforeEl  = document.getElementById('ratingBefore');
+      const afterEl   = document.getElementById('ratingAfter');
+      const diffEl    = document.getElementById('ratingDiff');
+      const bonusesEl = document.getElementById('ratingBonuses');
+
+      if (beforeEl) beforeEl.textContent = ratingData.before;
+      if (afterEl)  afterEl.textContent  = ratingData.before; // アニメ前は変化前の値
+      if (diffEl) {
+        const sign = ratingData.change >= 0 ? '+' : '';
+        diffEl.textContent  = `${sign}${ratingData.change}`;
+        diffEl.className    = `rating-diff ${ratingData.change >= 0 ? 'is-positive' : 'is-negative'}`;
+      }
+      if (bonusesEl) {
+        bonusesEl.innerHTML = ratingData.bonuses
+          .map(b => `<span class="rating-bonus-tag">${b}</span>`)
+          .join('');
+      }
+
+      // カウントアップアニメーション
+      setTimeout(() => animateRating(ratingData.before, ratingData.after), 600);
+    } else {
+      ratingSection.classList.add('is-hidden');
+    }
+  }
   resultScreen.classList.add('is-visible');
 }
 
@@ -940,22 +970,67 @@ async function handleVsGameOver(result) {
   if (timerId) { clearInterval(timerId); timerId = null; }
   stopBgm();
   primeButtons.forEach(btn => btn.disabled = true);
-
   if (vsUnsubscribe) { vsUnsubscribe(); vsUnsubscribe = null; }
 
-  // ルームのステータスを終了に
   if (vsRoomId) {
     const { db, ref, update } = await import('./firebase.js');
     await update(ref(db, `rooms/${vsRoomId}`), { status: 'finished' });
   }
 
+  const isWin = result === 'win' || result === 'win_disconnect';
+
+  // ===== レーティング計算 =====
+  let ratingData = null;
+  try {
+    const { getUserData, updateUserStats } = await import('./firebase.js');
+    const { calcRatingChange } = await import('./rating.js');
+
+    const [myData, opponentData] = await Promise.all([
+      getUserData(vsMyUid),
+      getUserData(vsOpponentUid),
+    ]);
+
+    if (myData && opponentData) {
+      const myRating       = myData.rating       ?? 1200;
+      const opponentRating = opponentData.rating  ?? 1200;
+      const winStreak      = isWin ? (myData.winStreak ?? 0) : 0;
+
+      const { change, newRating, bonuses } = calcRatingChange(
+        myRating, opponentRating, isWin,
+        isWin ? currentHP : 0,
+        winStreak
+      );
+
+      await updateUserStats(vsMyUid, isWin, newRating);
+
+      ratingData = { before: myRating, after: newRating, change, bonuses };
+    }
+  } catch (e) {
+    console.error('レーティング更新エラー:', e);
+  }
+
   const messages = {
-    win:            'YOU WIN!',
+    win:            'YOU WIN! 🎉',
     lose:           'YOU LOSE...',
-    win_disconnect: 'WIN (相手が切断)',
+    win_disconnect: 'WIN（相手が切断）',
   };
 
   playSe(EndingSound);
-  showResultScreen(messages[result] || 'FINISH!', false);
+  showResultScreen(messages[result] || 'FINISH!', false, ratingData);
+}
+
+function animateRating(from, to) {
+  const el = document.getElementById('ratingAfter');
+  if (!el) return;
+  const duration = 1000;
+  const startTime = performance.now();
+
+  function tick(now) {
+    const progress = Math.min((now - startTime) / duration, 1);
+    const eased    = 1 - Math.pow(1 - progress, 3);
+    el.textContent = Math.round(from + (to - from) * eased);
+    if (progress < 1) requestAnimationFrame(tick);
+  }
+  requestAnimationFrame(tick);
 }
 ;
