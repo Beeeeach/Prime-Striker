@@ -146,11 +146,11 @@ if (typeof window.updateDifficultyHighScores === 'function') {
   window.updateDifficultyHighScores();
 }
 
-const GameStartSound = new Audio('音声/決定ボタンを押す47.mp3');
-const DivdeSuccessSound = new Audio('音声/カーソル移動12.mp3');
-const DivdemissSound = new Audio('音声/ビープ音4.mp3');
-const ClearSound = new Audio('音声/成功音.mp3');
-const EndingSound = new Audio('音声/試合終了のゴング.mp3');
+const GameStartSound = new Audio('音声/start.mp3');
+const DivdeSuccessSound = new Audio('音声/divide.mp3');
+const DivdemissSound = new Audio('音声/miss.mp3');
+const ClearSound = new Audio('音声/clear.mp3');
+const EndingSound = new Audio('音声/ending.mp3');
 
 window. allSeAudios = [
   GameStartSound,
@@ -330,14 +330,16 @@ window.startBattle = function(config) {
   const isSolo = !vsMode;
 
   if (isSolo) {
-    hpRowsArea.classList.add('is-hidden');
-    scoreDisplayArea.classList.remove('is-hidden');
-    document.querySelector('.timer-row')?.style.removeProperty('display');
-  } else {
-    hpRowsArea.classList.remove('is-hidden');
-    scoreDisplayArea.classList.add('is-hidden');
-    document.querySelector('.timer-row')?.style.setProperty('display', 'none');
-  }
+  hpRowsArea.classList.add('is-hidden');
+  scoreDisplayArea.classList.remove('is-hidden');
+  document.querySelector('.timer-row')?.style.removeProperty('display');
+  pauseBtn?.classList.remove('is-hidden');
+} else {
+  hpRowsArea.classList.remove('is-hidden');
+  scoreDisplayArea.classList.add('is-hidden');
+  document.querySelector('.timer-row')?.style.setProperty('display', 'none');
+  pauseBtn?.classList.add('is-hidden');
+}
 
   initGame(currentDifficulty);
 
