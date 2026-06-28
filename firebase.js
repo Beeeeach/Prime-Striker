@@ -2,7 +2,7 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js";
 import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged }
   from "https://www.gstatic.com/firebasejs/12.15.0/firebase-auth.js";
-import { getDatabase, ref, set, get, push, onValue, onDisconnect, serverTimestamp, remove, update, runTransaction }
+import { getDatabase, ref, set, get, push, onValue, onDisconnect, serverTimestamp, remove, update, runTransaction, query, orderByChild, limitToLast }
   from "https://www.gstatic.com/firebasejs/12.15.0/firebase-database.js";
 
 const firebaseConfig = {
@@ -87,4 +87,60 @@ export async function updateUserStats(uid, isWin, newRating) {
 
 const DEFAULT_RATING = 1200;
 
-export { db, ref, set, get, push, onValue, onDisconnect, serverTimestamp, remove, update, runTransaction };
+// ===================================================
+// ランキング機能
+// ===================================================
+
+// 新記録をランキング（leaderboards）に送信する。ログインユーザーのみ対象。
+export async function submitScoreToLeaderboard(difficulty, score) {
+  const user = getCurrentUser();
+  if (!user) return; // ゲストはグローバルランキングに送信しない
+
+  const scoreRef = ref(db, `leaderboards/${difficulty}/${user.uid}`);
+  const snap = await get(scoreRef);
+  const existingScore = snap.exists() ? (snap.val().score ?? 0) : 0;
+
+  if (score > existingScore) {
+    await set(scoreRef, {
+      displayName: user.displayName || 'Player', // ★users側と統一してdisplayNameを使用
+      score: Math.floor(score),
+      updatedAt: serverTimestamp(),
+    });
+  }
+}
+
+// 指定難易度のハイスコア上位を取得する
+export async function getTopScores(difficulty, limitCount = 10) {
+  const scoresQuery = query(
+    ref(db, `leaderboards/${difficulty}`),
+    orderByChild('score'),
+    limitToLast(limitCount)
+  );
+  const snap = await get(scoresQuery);
+  if (!snap.exists()) return [];
+
+  const list = [];
+  snap.forEach((child) => {
+    list.push({ uid: child.key, ...child.val() });
+  });
+  return list.sort((a, b) => b.score - a.score);
+}
+
+// レーティング上位を取得する
+export async function getTopRatings(limitCount = 10) {
+  const ratingQuery = query(
+    ref(db, 'users'),
+    orderByChild('rating'),
+    limitToLast(limitCount)
+  );
+  const snap = await get(ratingQuery);
+  if (!snap.exists()) return [];
+
+  const list = [];
+  snap.forEach((child) => {
+    list.push({ uid: child.key, ...child.val() });
+  });
+  return list.sort((a, b) => (b.rating ?? DEFAULT_RATING) - (a.rating ?? DEFAULT_RATING));
+}
+
+export { db, ref, set, get, push, onValue, onDisconnect, serverTimestamp, remove, update, runTransaction, query, orderByChild, limitToLast };
