@@ -157,24 +157,36 @@ if (btnSettings) {
   btnSettings.addEventListener('click', () => {
     if (settingsBgmSlider && existingBgmSlider) {
       settingsBgmSlider.value = existingBgmSlider.value;
+      updateSettingsMuteLabel(settingsBgmLabel, settingsBgmSlider.value);
     }
     if (settingsSeSlider && existingSeSlider) {
       settingsSeSlider.value = existingSeSlider.value;
+      updateSettingsMuteLabel(settingsSeLabel, settingsSeSlider.value);
     }
   });
 }
 
 // 設定モーダルのスライダーを動かしたら、既存スライダーにも値を反映してinputイベントを発火させる
+const settingsBgmLabel = document.getElementById('settingsBgmLabel');
+const settingsSeLabel  = document.getElementById('settingsSeLabel');
+
+function updateSettingsMuteLabel(labelEl, percent) {
+  if (!labelEl) return;
+  labelEl.classList.toggle('is-muted', parseInt(percent, 10) === 0);
+}
+
 if (settingsBgmSlider && existingBgmSlider) {
   settingsBgmSlider.addEventListener('input', () => {
     existingBgmSlider.value = settingsBgmSlider.value;
     existingBgmSlider.dispatchEvent(new Event('input'));
+    updateSettingsMuteLabel(settingsBgmLabel, settingsBgmSlider.value);
   });
 }
 if (settingsSeSlider && existingSeSlider) {
   settingsSeSlider.addEventListener('input', () => {
     existingSeSlider.value = settingsSeSlider.value;
     existingSeSlider.dispatchEvent(new Event('input'));
+    updateSettingsMuteLabel(settingsSeLabel, settingsSeSlider.value);
   });
 }
 
