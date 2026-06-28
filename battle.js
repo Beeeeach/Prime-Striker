@@ -578,7 +578,19 @@ function handleGameOver() {
   // ★追加: ハイスコア判定（保存とフラグ取得）
   const isNewRecord = checkAndUpdateHighScore(totalScore);
 
-  showResultScreen(message, isNewRecord); // ★isNewRecordを渡す
+  // ★追加: 新記録時にFirebaseのリーダーボードにも送信
+  if (isNewRecord) {
+    import('./firebase.js').then(({ submitScoreToLeaderboard }) => {
+      submitScoreToLeaderboard(currentDifficulty, totalScore);
+    });
+  }
+
+  // ★追加: 難易度選択画面のハイスコア表示を更新
+  if (typeof window.updateDifficultyHighScores === 'function') {
+    window.updateDifficultyHighScores();
+  }
+
+  showResultScreen(message, isNewRecord);
 
   if (typeof window.onGameOver === 'function') {
     window.onGameOver({ score: totalScore, maxCombo: maxCombo, isNewRecord: isNewRecord });
