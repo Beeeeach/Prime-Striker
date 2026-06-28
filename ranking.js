@@ -9,6 +9,10 @@ const rankingList     = document.getElementById('rankingList');
 let currentRankType = 'easy';
 const cache = {}; // タブ切り替えごとに毎回Firebaseへ取りに行かないための簡易キャッシュ
 
+window.clearRankingCache = function() {
+  Object.keys(cache).forEach(key => delete cache[key]);
+};
+
 // モーダルの開閉
 if (btnRanking && rankingModal) {
   btnRanking.addEventListener('click', () => {
