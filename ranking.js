@@ -51,12 +51,7 @@ async function loadRanking(type) {
 
     const { getTopScores, getTopRatings, getCurrentUser } = await import('./firebase.js');
 
-    let items;
-    if (type === 'rating') {
-      items = await getTopRatings(10);
-    } else {
-      items = await getTopScores(type, 10);
-    }
+    const items = await getTopScores(type, 10);
 
     cache[type] = items;
     renderRanking(items, type);
