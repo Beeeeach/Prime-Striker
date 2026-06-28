@@ -105,6 +105,15 @@ function updateHighScoreDisplay() {
     highScoreValueDisplay.textContent = getOverallBestScore();
   }
 }
+
+// ★追加: 難易度選択画面のハイスコアを更新
+window.updateDifficultyHighScores = function () {
+  Object.keys(HIGH_SCORE_KEYS).forEach(difficulty => {
+    const el = document.getElementById(`highScore-${difficulty}`);
+    if (el) el.textContent = getHighScore(difficulty);
+  });
+};
+
 // 難易度選択画面の各ボタンにベストスコアを反映（menu.jsからも呼べるようwindowに公開）
 window.resetAllHighScores = function () {
   Object.keys(HIGH_SCORE_KEYS).forEach(difficulty => {
@@ -142,9 +151,9 @@ function checkAndUpdateHighScore(finalScore) {
 
 // ★追加: ページ読み込み時に一度、スタート画面のハイスコアを表示しておく
 updateHighScoreDisplay();
-if (typeof window.updateDifficultyHighScores === 'function') {
+document.addEventListener('DOMContentLoaded', () => {
   window.updateDifficultyHighScores();
-}
+});
 
 const GameStartSound = new Audio('音声/start.mp3');
 const DivdeSuccessSound = new Audio('音声/divide.mp3');
@@ -537,11 +546,9 @@ function handleComplete() {
 // ===================================================
 function startTimer() {
   timerId = setInterval(() => {
-    if (isPaused) return;      // 一時停止中はカウントしない
-
+    if (isPaused || isGameOver) return;
     remainingTime--;
     updateTimerUI();
-
     if (remainingTime <= 0) {
       handleGameOver();
     }
@@ -551,6 +558,12 @@ function startTimer() {
 function handleGameOver() {
   if (isGameOver) return;
   isGameOver = true;
+
+  // ★追加: ゲームオーバー時に一時停止状態を強制解除
+  isPaused = false;
+  if (pauseOverlay) {
+    pauseOverlay.classList.remove('is-visible');
+  }
 
   if (timerId) {
     clearInterval(timerId);
