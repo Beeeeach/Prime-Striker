@@ -142,7 +142,9 @@ function checkAndUpdateHighScore(finalScore) {
 
 // ★追加: ページ読み込み時に一度、スタート画面のハイスコアを表示しておく
 updateHighScoreDisplay();
-window.updateDifficultyHighScores();
+if (typeof window.updateDifficultyHighScores === 'function') {
+  window.updateDifficultyHighScores();
+}
 
 const GameStartSound = new Audio('音声/決定ボタンを押す47.mp3');
 const DivdeSuccessSound = new Audio('音声/カーソル移動12.mp3');
