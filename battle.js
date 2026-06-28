@@ -106,11 +106,18 @@ function updateHighScoreDisplay() {
   }
 }
 // 難易度選択画面の各ボタンにベストスコアを反映（menu.jsからも呼べるようwindowに公開）
-window.updateDifficultyHighScores = function () {
+window.resetAllHighScores = function () {
   Object.keys(HIGH_SCORE_KEYS).forEach(difficulty => {
+    const key = HIGH_SCORE_KEYS[difficulty];
+    localStorage.removeItem(key);
+
+    // 難易度選択画面の表示をリセット
     const el = document.getElementById(`highScore-${difficulty}`);
-    if (el) el.textContent = getHighScore(difficulty);
+    if (el) el.textContent = '0';
   });
+
+  // スタート画面のハイスコア表示もリセット
+  updateHighScoreDisplay();
 };
 
 function checkAndUpdateHighScore(finalScore) {
