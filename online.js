@@ -124,6 +124,16 @@ const btnBackFromMatching   = document.getElementById('btn-back-to-start-from-ma
 let currentRoomId = null;
 let roomListener  = null;
 
+// ============ Firebaseからニックネームを取得 ============
+async function getMyNickname() {
+  try {
+    const { getUserData } = await import('./firebase.js');
+    const data = await getUserData(currentUser.uid);
+    return data?.displayName || currentUser.displayName || 'Player';
+  } catch (e) {
+    return currentUser.displayName || 'Player';
+  }
+}
 // ============ ルームコード生成（6桁英数字） ============
 function generateRoomCode() {
   const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
@@ -198,7 +208,7 @@ async function startRandomMatch() {
 
     // 自分の情報を追加してゲーム開始
     await set(ref(db, `rooms/${roomId}/players/${currentUser.uid}`), {
-      nickname:      currentUser.displayName || 'Guest',
+      nickname: nickname,
       avatar:        currentUser.photoURL    || '',
       hp:            1000,
       currentNumber: 0,
@@ -220,13 +230,14 @@ async function startRandomMatch() {
     const roomCode = generateRoomCode();
     const roomId   = roomCode;
     const roomRef  = ref(db, `rooms/${roomId}`);
+    const nickname = await getMyNickname();
 
     await set(roomRef, {
       status:    'waiting',
       createdAt: serverTimestamp(),
       players: {
         [currentUser.uid]: {
-          nickname:      currentUser.displayName || 'Guest',
+          nickname: nickname,
           avatar:        currentUser.photoURL    || '',
           hp:            1000,
           currentNumber: 0,
@@ -265,13 +276,14 @@ async function createRoom() {
 
   const { db, ref, set, onValue, serverTimestamp, onDisconnect } = await import('./firebase.js');
   const roomRef = ref(db, `rooms/${roomId}`);
+  const nickname = await getMyNickname();
 
   await set(roomRef, {
     status:    'waiting',
     createdAt: serverTimestamp(),
     players: {
       [currentUser.uid]: {
-        nickname:      currentUser.displayName || 'Guest',
+        nickname: nickname,
         avatar:        currentUser.photoURL    || '',
         hp:            1000,
         currentNumber: 0,
@@ -319,9 +331,9 @@ async function joinRoom(code) {
   }
 
   showWaiting('ルームに参加しています...');
-
+  const nickname = await getMyNickname();
   await set(ref(db, `rooms/${roomId}/players/${currentUser.uid}`), {
-    nickname:      currentUser.displayName || 'Guest',
+    nickname: nickname,
     avatar:        currentUser.photoURL    || '',
     hp:            1000,
     currentNumber: 0,
