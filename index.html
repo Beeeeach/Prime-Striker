@@ -82,15 +82,15 @@
 
   /* ============ 上部：ステータスエリア ============ */
   .status-area{
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    background: var(--bg-panel);
-    border: 1px solid var(--line);
-    border-radius: 14px;
-    padding: 12px 14px;
-    position: relative;
-  }
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  background: var(--bg-panel);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 14px 16px;
+  position: relative;
+}
 
   .timer-row{
     display: flex;
@@ -109,11 +109,11 @@
 
   .timer-value{
     font-family: var(--font-display);
-    font-size: 20px;
+    font-size: 24px;
     font-weight: 700;
     color: var(--accent);
     letter-spacing: 1px;
-    min-width: 64px;
+    min-width: 72px;
     text-align: center;
   }
 
@@ -148,7 +148,7 @@
   .score-value{
     font-family: var(--font-display);
     font-weight: 900;
-    font-size: 30px;
+    font-size: 34px;
     color: var(--accent);
     text-shadow: 0 0 14px rgba(255,182,39,0.6);
     letter-spacing: 1px;
@@ -160,16 +160,11 @@
     gap: 6px;
   }
   
-  .hp-row{
+.hp-row{
   display: grid;
-  grid-template-columns: 52px 1fr 70px;
+  grid-template-columns: 90px 1fr 72px;
   align-items: center;
   gap: 8px;
-}
-
-/* ★新規追加: 敵情報行（ニックネーム表示）だけ列幅を変更し、名前エリアを広げる */
-.hp-row.enemy-row{
-  grid-template-columns: 92px 1fr 70px; /* 52px → 92px に拡大、HPバー(1fr)が縮む分を吸収 */
 }
 
   .hp-rows.is-hidden {
@@ -184,11 +179,12 @@
   }
   /* ★新規追加: 相手のニックネーム表示（hp-tagを少し拡張） */
 .enemy-info-tag{
-  max-width: 88px; /* ★変更: 列幅の拡大に合わせて広げる */
+  max-width: 86px; /* ★変更: 列幅の拡大に合わせて広げる */
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  font-size: 12px; /* ★追加: 少し大きくして視認性を上げる */
+  font-size: 11px; /* ★追加: 少し大きくして視認性を上げる */
+  letter-spacing: 0.5px;
 }
 
 /* ★新規追加: 相手のレーティング表示 */
@@ -221,7 +217,7 @@
 
   .hp-bar-track{
     position: relative;
-    height: 16px;
+    height: 18px;
     background: #0a0f1c;
     border: 1px solid var(--line);
     border-radius: 8px;
@@ -280,18 +276,18 @@
 
   .combo-display{
     font-family: var(--font-display);
-    font-size: 15px;
+    font-size: 13px;
     font-weight: 700;
-    letter-spacing: 3px;
+    letter-spacing: 4px;
     color: var(--accent);
     text-shadow: 0 0 12px rgba(255,182,39,0.6);
-    margin-bottom: 6px;
-    min-height: 18px;
+    margin-bottom: 8px;
+    min-height: 20px;
     opacity: 0.95;
   }
 
   .combo-display .combo-num{
-    font-size: 19px;
+    font-size: 22px;
   }
 
 .current-number{
@@ -362,11 +358,11 @@
     cursor: pointer;
     font-family: var(--font-display);
     font-weight: 700;
-    font-size: clamp(20px, 6vw, 26px);
+    font-size: clamp(18px, 5.5vw, 26px);
     color: var(--text-main);
     background: linear-gradient(160deg, #16203a, #0d1424);
     border: 1px solid var(--line);
-    border-radius: 14px;
+    border-radius: 16px;
     padding: 0;
     aspect-ratio: 1 / 1;
     display: flex;
@@ -374,9 +370,9 @@
     justify-content: center;
     position: relative;
     box-shadow:
-      0 3px 0 rgba(0,0,0,0.5),
-      inset 0 1px 0 rgba(255,255,255,0.05);
-    transition: transform 0.08s ease, box-shadow 0.08s ease, background 0.15s ease, color 0.15s ease;
+      0 4px 0 rgba(0,0,0,0.6),
+      inset 0 1px 0 rgba(255,255,255,0.07);
+    transition: transform 0.07s ease, box-shadow 0.07s ease, background 0.12s ease, color 0.12s ease;
     -webkit-user-select: none;
     user-select: none;
     touch-action: manipulation;
@@ -384,7 +380,7 @@
 
   .prime-btn:active,
   .prime-btn.is-pressed{
-    transform: translateY(2px);
+    transform: translateY(3px);
     box-shadow:
       0 1px 0 rgba(0,0,0,0.5),
       inset 0 1px 0 rgba(255,255,255,0.05);
@@ -454,12 +450,13 @@
     font-family: var(--font-display);
   }
 
-  .mode-btn:hover {
-    background: var(--self-color);
-    color: #000;
-    box-shadow: 0 0 20px var(--self-color);
-    transform: translateY(-3px);
-  }
+.mode-btn:hover {
+  background: rgba(0, 230, 195, 0.15);
+  color: var(--self-color);
+  box-shadow: 0 0 24px rgba(0, 230, 195, 0.4);
+  transform: translateY(-4px);
+  border-color: var(--self-color);
+}
 
   .mode-btn__label { font-size: 1.3rem; font-weight: bold; }
   .mode-btn__sub { font-size: 0.8rem; opacity: 0.8; margin-top: 4px; }
@@ -468,10 +465,12 @@
     border-color: var(--enemy-color);
     background: rgba(255, 56, 104, 0.05);
   }
-  .mode-btn--vs:hover {
-    background: var(--enemy-color);
-    box-shadow: 0 0 20px var(--enemy-color);
-  }
+ .mode-btn--vs:hover {
+  background: rgba(255, 56, 104, 0.15);
+  color: var(--enemy-color);
+  border-color: var(--enemy-color);
+  box-shadow: 0 0 24px rgba(255, 56, 104, 0.4);
+}
 
   .back-btn-container {
     display: flex;
@@ -557,10 +556,10 @@
 .result-title{
   font-family: var(--font-display);
   font-weight: 900;
-  font-size: 26px;
-  letter-spacing: 2px;
+  font-size: 28px;
+  letter-spacing: 3px;
   color: var(--text-main);
-  margin: 0 0 24px;
+  margin: 0 0 20px;
   text-shadow: 0 0 18px rgba(0,230,195,0.35);
 }
 
@@ -573,10 +572,11 @@
 
 .result-stat{
   flex: 1;
-  background: #0a0f1c;
+  background: rgba(10, 15, 28, 0.9);
   border: 1px solid var(--line);
-  border-radius: 12px;
-  padding: 14px 8px;
+  border-radius: 14px;
+  padding: 16px 10px;
+  transition: border-color 0.2s ease;
   opacity: 0;
   transform: translateY(10px);
   animation: result-stat-in 0.5s ease forwards;
@@ -592,6 +592,10 @@
   }
 }
 
+.result-stat:hover{
+  border-color: var(--accent);
+}
+
 .result-stat__label{
   display: block;
   font-family: var(--font-display);
@@ -605,7 +609,7 @@
   display: block;
   font-family: var(--font-display);
   font-weight: 900;
-  font-size: 30px;
+  font-size: 32px;
   color: var(--accent);
   text-shadow: 0 0 14px rgba(255,182,39,0.6);
 }
@@ -1022,7 +1026,7 @@
 
 .ranking-tab{
   flex: 1;
-  min-width: 70px;
+  min-width: 64px;
   background: transparent;
   border: 1px solid var(--line);
   color: var(--text-dim);
@@ -1030,9 +1034,10 @@
   font-size: 11px;
   font-weight: 700;
   letter-spacing: 1px;
-  padding: 8px 6px;
-  border-radius: 8px;
+  padding: 9px 6px;
+  border-radius: 10px;
   cursor: pointer;
+  letter-spacing: 0.5px;
   transition: all 0.15s ease;
 }
 
@@ -1133,7 +1138,7 @@
   background: linear-gradient(160deg, #0d1426, #060911);
   border: 1px solid var(--line);
   border-radius: 16px;
-  padding: 28px 24px;
+  padding: 32px 28px;
 
   /* ★追加: Firefox用のスクロールバーカスタマイズ */
   scrollbar-width: thin;
@@ -1406,9 +1411,10 @@
 
 .difficulty-btn__score {
   font-family: var(--font-number);
-  font-size: 1.1rem;
+  font-size: 1.2rem;
   font-weight: 700;
   color: var(--accent);
+  letter-spacing: 1px;
 }
 
 /* 難易度ごとのカラー */
@@ -1471,16 +1477,16 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 6px;
-  padding: 14px 20px;
-  border-radius: 12px;
+  gap: 8px;
+  padding: 16x 24px;
+  border-radius: 14px;
   border: 1px solid var(--self-color);
   background: rgba(0, 230, 195, 0.05);
   color: var(--text-main);
   font-family: var(--font-display);
   font-size: 14px;
   font-weight: 700;
-  letter-spacing: 1px;
+  letter-spacing: 1.5px;
   cursor: pointer;
   transition: all 0.2s ease;
 }
@@ -1572,8 +1578,8 @@
 
 .matching-btn {
   appearance: none;
-  border-radius: 12px;
-  padding: 18px 20px;
+  border-radius: 14px;
+  padding: 20px 22px;
   cursor: pointer;
   font-family: var(--font-display);
   display: flex;
@@ -1581,7 +1587,7 @@
   background: rgba(13, 19, 34, 0.6);
   border: 1px solid var(--self-color);
   color: var(--text-main);
-  transition: all 0.2s ease;
+  transition: all 0.18s ease;
   text-align: left;
   width: 100%;
 }
@@ -1687,12 +1693,13 @@
 }
 
 .waiting-spinner {
-  width: 48px;
-  height: 48px;
+  width: 56px;
+  height: 56px;
   border: 3px solid var(--line);
   border-top-color: var(--self-color);
   border-radius: 50%;
   animation: spin 0.9s linear infinite;
+  box-shadow: 0 0 16px rgba(0, 230, 195, 0.2);
 }
 
 @keyframes spin {
@@ -1740,12 +1747,13 @@
 
 .enemy-number-value {
   font-family: var(--font-number);
-  font-size: 22px;
+  font-size: 24px;
   font-weight: 700;
   color: var(--enemy-color);
   text-shadow: 0 0 10px var(--enemy-glow);
   flex: 1;
   text-align: center;
+  letter-spacing: 1px;
 }
 
 .enemy-combo-value {
