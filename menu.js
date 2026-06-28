@@ -182,23 +182,12 @@ if (settingsSeSlider && existingSeSlider) {
 const btnResetHighscore = document.getElementById('btn-reset-highscore');
 if (btnResetHighscore) {
   btnResetHighscore.addEventListener('click', () => {
-    // 確認メッセージを「すべてのハイスコア」に変更
     const confirmed = confirm('すべてのハイスコアをリセットしてもよろしいですか？');
-    
     if (confirmed) {
-      // HIGH_SCORE_KEYSの [キー(easyなど), 値(ストレージのキー)] をペアでループ処理
-      Object.entries(HIGH_SCORE_KEYS).forEach(([difficulty, storageKey]) => {
-        
-        // 1. ローカルストレージから該当する難易度のスコアを削除
-        localStorage.removeItem(storageKey);
-        
-        // 2. 画面上の表示も「0」にリセット
-        // HTML側のIDが「highScoreValue_easy」「highScoreValue_normal」のようになっている必要があります
-        const highScoreValueDisplay = document.getElementById(`highScoreValue_${difficulty}`);
-        if (highScoreValueDisplay) {
-          highScoreValueDisplay.textContent = '0';
-        }
-      });
+      // battle.js の window 公開関数を使ってリセット
+      if (typeof window.resetAllHighScores === 'function') {
+        window.resetAllHighScores();
+      }
     }
   });
 };
