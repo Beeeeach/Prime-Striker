@@ -2320,11 +2320,11 @@
     <h2 class="overlay-title">設定</h2>
 
     <div class="settings-row">
-      <span class="settings-label">BGM</span>
+      <span class="settings-label sound-panel__label" id="settingsBgmLabel">BGM</span>
       <input type="range" id="settingsBgmSlider" class="sound-slider" min="0" max="100" value="50">
     </div>
     <div class="settings-row">
-      <span class="settings-label">SE</span>
+      <span class="settings-label sound-panel__label" id="settingsSeLabel">SE</span>
       <input type="range" id="settingsSeSlider" class="sound-slider" min="0" max="100" value="80">
     </div>
 
@@ -2391,7 +2391,7 @@
     </div>
   </div>
   <!-- ▲▲ リザルト画面ここまで ▲▲ -->
-  <audio id="bgm" src="音声/パズルDEポンっ！.mp3" loop preload="auto"></audio>
+  <audio id="bgm" src="音声/bgm.mp3" loop preload="auto"></audio>
 
 <script type="module" src="rating.js"></script>
 <script type="module" src="game.js"></script>
