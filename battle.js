@@ -117,6 +117,17 @@ function checkAndUpdateHighScore(finalScore) {
   const current = getHighScore(currentDifficulty);
   if (finalScore > current) {
     setHighScore(currentDifficulty, finalScore);
+
+    // ★追加: ログインユーザーならグローバルランキングにも送信
+    (async () => {
+      try {
+        const { submitScoreToLeaderboard } = await import('./firebase.js');
+        await submitScoreToLeaderboard(currentDifficulty, finalScore);
+      } catch (e) {
+        console.error('ランキング送信エラー:', e);
+      }
+    })();
+
     return true;
   }
   return false;
