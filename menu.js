@@ -57,19 +57,23 @@ import { getOnlineUser } from './online.js';
   }
 
   function backToTitle() {
-     if (typeof window.stopBattle === "function") {
-      window.stopBattle();
-    }
-    difficultyScreen?.classList.remove("active");
-    matchingScreen?.classList.remove("active");
-    switchScreen(startScreen, gameScreen);
-    if (typeof window.updateHighScoreDisplay === "function") {
-      window.updateHighScoreDisplay?.();
-    }
-    if (typeof window.updateMyRatingDisplay === "function") { // ★追加
-    window.updateMyRatingDisplay();
-    }
+  if (typeof window.stopBattle === "function") {
+    window.stopBattle();
   }
+  difficultyScreen?.classList.remove("active");
+  matchingScreen?.classList.remove("active");
+  switchScreen(startScreen, gameScreen);
+  if (typeof window.updateHighScoreDisplay === "function") {
+    window.updateHighScoreDisplay?.();
+  }
+  if (typeof window.updateMyRatingDisplay === "function") {
+    window.updateMyRatingDisplay();
+  }
+  // ★追加: ランキングキャッシュをクリアして次回開時に再取得
+  if (typeof window.clearRankingCache === "function") {
+    window.clearRankingCache();
+  }
+}
 
   btnSolo.addEventListener("click", startSoloMode);
   btnVs.addEventListener("click", startVsMode);
