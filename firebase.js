@@ -94,15 +94,19 @@ const DEFAULT_RATING = 1200;
 // 新記録をランキング（leaderboards）に送信する。ログインユーザーのみ対象。
 export async function submitScoreToLeaderboard(difficulty, score) {
   const user = getCurrentUser();
-  if (!user) return; // ゲストはグローバルランキングに送信しない
+  if (!user) return;
 
   const scoreRef = ref(db, `leaderboards/${difficulty}/${user.uid}`);
   const snap = await get(scoreRef);
   const existingScore = snap.exists() ? (snap.val().score ?? 0) : 0;
 
   if (score > existingScore) {
+    // Firebaseのusersコレクションからニックネームを取得
+    const userData = await getUserData(user.uid);
+    const nickname = userData?.displayName || user.displayName || 'Player';
+
     await set(scoreRef, {
-      displayName: user.displayName || 'Player', // ★users側と統一してdisplayNameを使用
+      displayName: nickname,
       score: Math.floor(score),
       updatedAt: serverTimestamp(),
     });
