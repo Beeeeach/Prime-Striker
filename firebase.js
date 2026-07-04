@@ -63,24 +63,24 @@ export async function initUserIfNeeded(uid, displayName) {
   if (!snap.exists()) {
     await set(userRef, {
       displayName: displayName || 'Player',
-      rating:      DEFAULT_RATING,
-      wins:        0,
-      losses:      0,
-      winStreak:   0,
-      createdAt:   serverTimestamp(),
+      rating: DEFAULT_RATING,
+      wins: 0,
+      losses: 0,
+      winStreak: 0,
+      createdAt: serverTimestamp(),
     });
   }
 }
 
 export async function updateUserStats(uid, isWin, newRating) {
   const userRef = ref(db, `users/${uid}`);
-  const snap    = await get(userRef);
+  const snap = await get(userRef);
   if (!snap.exists()) return;
   const data = snap.val();
   await update(userRef, {
-    rating:    newRating,
-    wins:      isWin ? (data.wins    || 0) + 1 : (data.wins    || 0),
-    losses:    isWin ? (data.losses  || 0)     : (data.losses  || 0) + 1,
+    rating: newRating,
+    wins: isWin ? (data.wins || 0) + 1 : (data.wins || 0),
+    losses: isWin ? (data.losses || 0) : (data.losses || 0) + 1,
     winStreak: isWin ? (data.winStreak || 0) + 1 : 0,
   });
 }
