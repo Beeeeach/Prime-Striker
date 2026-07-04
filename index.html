@@ -319,6 +319,56 @@
   .main-area.is-stunned{
     animation: stun-shake 0.5s infinite;
   }
+  /* ============ カウントダウン演出 ============ */
+.countdown-overlay{
+  display: none;
+  position: absolute;
+  inset: 0;
+  z-index: 30;
+  align-items: center;
+  justify-content: center;
+  background: rgba(5, 7, 12, 0.88);
+  backdrop-filter: blur(4px);
+}
+
+.countdown-overlay.is-visible{
+  display: flex;
+}
+
+.countdown-number{
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-size: 140px;
+  color: var(--self-color);
+  text-shadow: 0 0 40px var(--self-glow);
+  animation: countdown-pulse 1s ease-out;
+}
+
+.countdown-number.is-go{
+  color: var(--accent);
+  text-shadow: 0 0 40px rgba(255,182,39,0.7);
+  font-size: 80px;
+  letter-spacing: 4px;
+}
+
+@keyframes countdown-pulse{
+  0%{
+    opacity: 0;
+    transform: scale(1.6);
+  }
+  30%{
+    opacity: 1;
+    transform: scale(1);
+  }
+  80%{
+    opacity: 1;
+    transform: scale(1);
+  }
+  100%{
+    opacity: 0;
+    transform: scale(0.85);
+  }
+}
 
   .main-area.is-stunned::after{
     content: "STUN";
@@ -1935,6 +1985,25 @@
   color: var(--text-dim);
   margin: -8px 0 0;
 }
+/* ============ Xシェアボタン ============ */
+.result-btn--share{
+  border: 2px solid #1d9bf0;
+  color: #1d9bf0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.result-btn--share:hover{
+  background: #1d9bf0;
+  color: #03101c;
+  box-shadow: 0 0 18px rgba(29,155,240,0.5);
+}
+
+.result-btn--share.is-hidden{
+  display: none;
+}
 </style>
 </head>
 
@@ -2194,12 +2263,17 @@
     </header>
 
     <main class="main-area" id="mainArea">
-      <div class="combo-display" id="comboDisplay">
-        <span class="combo-num" id="comboNum">0</span> COMBO
-      </div>
-      <div class="current-number" id="currentNumber">---</div>
-      <div class="number-sub" id="numberSub">素因数を選択してください</div>
-    </main>
+  <div class="combo-display" id="comboDisplay">
+    <span class="combo-num" id="comboNum">0</span> COMBO
+  </div>
+  <div class="current-number" id="currentNumber">---</div>
+  <div class="number-sub" id="numberSub">素因数を選択してください</div>
+
+  <!-- ★追加: カウントダウンオーバーレイ -->
+  <div class="countdown-overlay" id="countdownOverlay">
+    <span class="countdown-number" id="countdownNumber">3</span>
+  </div>
+</main>
 
     <section class="control-area" id="controlArea">
       <button class="prime-btn" data-prime="2">2</button>
@@ -2389,6 +2463,11 @@
       <p class="result-message" id="resultMessage">ゲーム終了</p>
 
       <div class="result-actions">
+        <!-- ★追加: Soloモードのみ表示するシェアボタン -->
+        <button id="btn-share-x" class="result-btn result-btn--share is-hidden">
+          <i class="ti ti-brand-x" aria-hidden="true"></i>
+          結果をXでシェア
+        </button>
         <button id="btn-retry" class="result-btn result-btn--primary">もう一度プレイ</button>
         <button id="btn-to-title" class="result-btn result-btn--secondary">タイトルへ戻る</button>
       </div>
