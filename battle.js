@@ -493,7 +493,6 @@ function initGame(difficulty) {
   }
   hideResultScreen();
   runCountdown(() => {
-    playSe(GameStartSound);
     primeButtons.forEach(btn => btn.disabled = false);
     if (!vsMode) startTimer();
   });
