@@ -1,6 +1,15 @@
 // 先頭に追加
 import { generateInitialNumber, generateNextNumber, randomInt, randomFloat, DIFFICULTY_CONFIG } from './game.js';
 
+// ★新規追加: シェア用の難易度表示名・ハッシュタグ
+const DIFFICULTY_SHARE_INFO = {
+  easy:    { label: 'EASY',    tag: 'EASY' },
+  normal:  { label: 'NORMAL',  tag: 'NORMAL' },
+  hard:    { label: 'HARD',    tag: 'HARD' },
+  extreme: { label: 'EXTREME', tag: 'EXTREME' },
+};
+
+const GAME_URL = 'https://beeeeach.github.io/Prime-Striker/';
 // ---------- 1. 状態変数 ----------
 let currentNumber = 0;
 let startNumber = 0;
@@ -47,6 +56,8 @@ const scoreDisplayValue = document.getElementById('score-value');
 const scoreDisplayArea = document.getElementById('score-display');
 const primeButtons = document.querySelectorAll('.prime-btn');
 const mainArea = document.getElementById('mainArea');
+const countdownOverlay = document.getElementById('countdownOverlay'); // ★追加
+const countdownNumber = document.getElementById('countdownNumber');   // ★追加
 const selfHpRow = document.getElementById('selfHpRow');
 const enemyHpRow = document.getElementById('enemyHpRow');
 const enemyNicknameTag = document.getElementById('enemyNicknameTag'); // ★追加
@@ -60,6 +71,7 @@ const resultScoreValue = document.getElementById('resultScore'); // ※前回の
 const resultMaxComboValue = document.getElementById('resultMaxCombo');
 const btnRetry = document.getElementById('btn-retry');
 const btnToTitle = document.getElementById('btn-to-title');
+const btnShareX = document.getElementById('btn-share-x'); 
 const soundIconBtn = document.getElementById('soundIconBtn');
 const soundPanel = document.getElementById('soundPanel');
 const bgmVolumeSlider = document.getElementById('bgmVolumeSlider');
@@ -294,6 +306,44 @@ function fitNumberFontSize() {
     el.style.fontSize = `${fontSize}px`;
   }
 }
+
+// ★新規追加: 3,2,1,GO! のカウントダウンを表示し、終わったらコールバックを呼ぶ
+function runCountdown(onComplete) {
+  if (!countdownOverlay || !countdownNumber) {
+    onComplete(); // 要素が無ければカウントダウンをスキップして即開始
+    return;
+  }
+
+  const steps = ['3', '2', '1', 'GO!'];
+  let index = 0;
+
+  countdownOverlay.classList.add('is-visible');
+
+  // 素数ボタンはカウントダウン中押せないようにしておく
+  primeButtons.forEach(btn => btn.disabled = true);
+
+  function showNext() {
+    if (index >= steps.length) {
+      countdownOverlay.classList.remove('is-visible');
+      onComplete();
+      return;
+    }
+
+    const value = steps[index];
+    countdownNumber.textContent = value;
+    countdownNumber.classList.toggle('is-go', value === 'GO!');
+
+    // アニメーションを再トリガーするため、一旦クラスを外して付け直す
+    countdownNumber.style.animation = 'none';
+    void countdownNumber.offsetWidth; // 強制リフロー
+    countdownNumber.style.animation = '';
+
+    index++;
+    setTimeout(showNext, 1000); // 1秒ごとに切り替え（3,2,1で3秒、最後にGO!を一瞬表示）
+  }
+
+  showNext();
+}
 function playBgm() {
   if (!bgmAudio) return;
   // ★削除: bgmAudio.volume = BGM_VOLUME; → スライダーで設定済みの音量を維持するため削除
@@ -428,7 +478,7 @@ function initGame(difficulty) {
   updateTimerUI();
 
   primeButtons.forEach(btn => {
-    btn.disabled = false;
+    btn.disabled = true;
     btn.classList.remove('is-correct', 'is-wrong');
   });
 
@@ -436,7 +486,11 @@ function initGame(difficulty) {
     clearInterval(timerId);
   }
   hideResultScreen();
-  if (!vsMode) startTimer();
+  runCountdown(() => {
+    playSe(GameStartSound);
+    primeButtons.forEach(btn => btn.disabled = false);
+    if (!vsMode) startTimer();
+  });
 }
 
 // ===================================================
@@ -672,6 +726,11 @@ function showResultScreen(message, isNewRecord, ratingData = null) {
   if (newRecordBadge) {
     newRecordBadge.classList.toggle('is-hidden', !isNewRecord);
   }
+   // ★追加: Soloモード（VSモードでない）の時だけXシェアボタンを表示
+  if (btnShareX) {
+    btnShareX.classList.toggle('is-hidden', vsMode);
+  }
+
 
   // ===== レーティング表示（VSモードのみ） =====
   const ratingSection = document.getElementById('resultRatingSection');
@@ -705,6 +764,31 @@ function showResultScreen(message, isNewRecord, ratingData = null) {
   }
   resultScreen.classList.add('is-visible');
 }
+// ★新規追加: Xでシェアする
+function shareResultToX(isNewRecord) {
+  const info = DIFFICULTY_SHARE_INFO[currentDifficulty] || DIFFICULTY_SHARE_INFO.easy;
+  const scoreText = Math.floor(totalScore);
+
+  const headline = isNewRecord
+    ? `【NEW RECORD更新！】`
+    : `【Prime Striker】`;
+
+  const text =
+`${headline}
+難易度: ${info.label}
+スコア: ${scoreText}
+最大コンボ: ${maxCombo}
+
+#PrimeStriker #${info.tag}`;
+
+  const params = new URLSearchParams({
+    text: text,
+    url: GAME_URL,
+  });
+
+  const shareUrl = `https://twitter.com/intent/tweet?${params.toString()}`;
+  window.open(shareUrl, '_blank', 'noopener,noreferrer');
+}
 
 function hideResultScreen() {
   if (!resultScreen) return;
@@ -732,6 +816,12 @@ primeButtons.forEach(btn => {
     onPrimeClick(p, btn);
   });
 });
+if (btnShareX) {
+  btnShareX.addEventListener('click', () => {
+    const isNewRecord = newRecordBadge && !newRecordBadge.classList.contains('is-hidden');
+    shareResultToX(isNewRecord);
+  });
+}
 // ★新規追加
 if (btnRetry) {
   btnRetry.addEventListener('click', () => {
