@@ -3,9 +3,9 @@ import { generateInitialNumber, generateNextNumber, randomInt, randomFloat, DIFF
 
 // ★新規追加: シェア用の難易度表示名・ハッシュタグ
 const DIFFICULTY_SHARE_INFO = {
-  easy:    { label: 'EASY',    tag: 'EASY' },
-  normal:  { label: 'NORMAL',  tag: 'NORMAL' },
-  hard:    { label: 'HARD',    tag: 'HARD' },
+  easy: { label: 'EASY', tag: 'EASY' },
+  normal: { label: 'NORMAL', tag: 'NORMAL' },
+  hard: { label: 'HARD', tag: 'HARD' },
   extreme: { label: 'EXTREME', tag: 'EXTREME' },
 };
 
@@ -27,11 +27,11 @@ let isPaused = false;
 let currentDifficulty = 'easy';
 
 // VS モード用状態変数
-let vsMode         = false;
-let vsRoomId       = null;
-let vsMyUid        = null;
-let vsOpponentUid  = null;
-let vsUnsubscribe  = null;
+let vsMode = false;
+let vsRoomId = null;
+let vsMyUid = null;
+let vsOpponentUid = null;
+let vsUnsubscribe = null;
 
 
 
@@ -71,7 +71,7 @@ const resultScoreValue = document.getElementById('resultScore'); // ※前回の
 const resultMaxComboValue = document.getElementById('resultMaxCombo');
 const btnRetry = document.getElementById('btn-retry');
 const btnToTitle = document.getElementById('btn-to-title');
-const btnShareX = document.getElementById('btn-share-x'); 
+const btnShareX = document.getElementById('btn-share-x');
 const soundIconBtn = document.getElementById('soundIconBtn');
 const soundPanel = document.getElementById('soundPanel');
 const bgmVolumeSlider = document.getElementById('bgmVolumeSlider');
@@ -89,9 +89,9 @@ const BGM_VOLUME = 0.5; // 好みに応じて0.0〜1.0で調整
 let lastConfig = null;
 // ★追加: ハイスコア関連
 const HIGH_SCORE_KEYS = {
-  easy:    'primeStriker_highScore_easy',
-  normal:  'primeStriker_highScore_normal',
-  hard:    'primeStriker_highScore_hard',
+  easy: 'primeStriker_highScore_easy',
+  normal: 'primeStriker_highScore_normal',
+  hard: 'primeStriker_highScore_hard',
   extreme: 'primeStriker_highScore_extreme',
 };
 const highScoreValueDisplay = document.getElementById('highScoreValue');
@@ -172,13 +172,15 @@ const DivdeSuccessSound = new Audio('音声/divide.mp3');
 const DivdemissSound = new Audio('音声/miss.mp3');
 const ClearSound = new Audio('音声/clear.mp3');
 const EndingSound = new Audio('音声/ending.mp3');
+const CountdownTickSound = new Audio('音声/countdown.mp3')
 
-window. allSeAudios = [
+window.allSeAudios = [
   GameStartSound,
   DivdeSuccessSound,
   DivdemissSound,
   ClearSound,
-  EndingSound
+  EndingSound,
+  CountdownTickSound,
 ];
 // 早押しなどで再生が競合しエラーになっても、ゲームの他の処理を止めないようにする
 function playSe(audio) {
@@ -310,7 +312,7 @@ function fitNumberFontSize() {
 // ★新規追加: 3,2,1,GO! のカウントダウンを表示し、終わったらコールバックを呼ぶ
 function runCountdown(onComplete) {
   if (!countdownOverlay || !countdownNumber) {
-    onComplete(); // 要素が無ければカウントダウンをスキップして即開始
+    onComplete();
     return;
   }
 
@@ -318,13 +320,13 @@ function runCountdown(onComplete) {
   let index = 0;
 
   countdownOverlay.classList.add('is-visible');
-
-  // 素数ボタンはカウントダウン中押せないようにしておく
   primeButtons.forEach(btn => btn.disabled = true);
 
   function showNext() {
     if (index >= steps.length) {
+      // ★変更: カウントダウン完了後にオーバーレイを消してBGMを鳴らしてからコールバック
       countdownOverlay.classList.remove('is-visible');
+      playBgm(); // ★移動: ここで初めてBGMを開始する
       onComplete();
       return;
     }
@@ -333,13 +335,19 @@ function runCountdown(onComplete) {
     countdownNumber.textContent = value;
     countdownNumber.classList.toggle('is-go', value === 'GO!');
 
-    // アニメーションを再トリガーするため、一旦クラスを外して付け直す
+    // ★追加: 表示内容に合わせて効果音を鳴らす
+    if (value === 'GO!') {
+      playSe(GameStartSound);
+    } else {
+      playSe(CountdownTickSound);
+    }
+
     countdownNumber.style.animation = 'none';
-    void countdownNumber.offsetWidth; // 強制リフロー
+    void countdownNumber.offsetWidth;
     countdownNumber.style.animation = '';
 
     index++;
-    setTimeout(showNext, 1000); // 1秒ごとに切り替え（3,2,1で3秒、最後にGO!を一瞬表示）
+    setTimeout(showNext, 1000);
   }
 
   showNext();
@@ -378,7 +386,7 @@ window.addEventListener('resize', fitNumberFontSize);
 // ===================================================
 // 2. ゲーム開始・停止処理
 // ===================================================
-window.startBattle = function(config) {
+window.startBattle = function (config) {
   lastConfig = config;
   vsMode = config.mode === 'vs'; // ★変更: 先にvsModeを確定させる
   currentDifficulty = vsMode ? 'hard' : (config.difficulty || 'easy'); // ★変更: 確定後のvsModeを使って判定
@@ -389,30 +397,29 @@ window.startBattle = function(config) {
   const isSolo = !vsMode;
 
   if (isSolo) {
-  hpRowsArea.classList.add('is-hidden');
-  scoreDisplayArea.classList.remove('is-hidden');
-  document.querySelector('.timer-row')?.style.removeProperty('display');
-  pauseBtn?.classList.remove('is-hidden');
-} else {
-  hpRowsArea.classList.remove('is-hidden');
-  scoreDisplayArea.classList.add('is-hidden');
-  document.querySelector('.timer-row')?.style.setProperty('display', 'none');
-  pauseBtn?.classList.add('is-hidden');
-}
+    hpRowsArea.classList.add('is-hidden');
+    scoreDisplayArea.classList.remove('is-hidden');
+    document.querySelector('.timer-row')?.style.removeProperty('display');
+    pauseBtn?.classList.remove('is-hidden');
+  } else {
+    hpRowsArea.classList.remove('is-hidden');
+    scoreDisplayArea.classList.add('is-hidden');
+    document.querySelector('.timer-row')?.style.setProperty('display', 'none');
+    pauseBtn?.classList.add('is-hidden');
+  }
 
   initGame(currentDifficulty);
 
   if (vsMode) {
     initVsBattle(config); // ★追加
   }
-  playBgm(); // ★追加: ゲーム開始と同時にBGM再生
 
   requestAnimationFrame(() => {
     fitNumberFontSize();
   });
 };
 
-window.stopBattle = function() {
+window.stopBattle = function () {
   if (timerId) {
     clearInterval(timerId);
     timerId = null;
@@ -444,17 +451,16 @@ function updatePrimeButtons() {
 
 // 引数として difficulty を受け取るように変更
 function initGame(difficulty) {
-  playSe(GameStartSound);
-  
+
   // 引数で指定された難易度、指定がなければ現在の難易度を使う
   currentDifficulty = difficulty || currentDifficulty;
 
   // ★修正：generateInitialNumber に難易度を明示的に渡す
   // （もしgame.jsの仕様が generateInitialNumber(currentDifficulty) であればこのように書き換えます）
-  startNumber = generateInitialNumber(currentDifficulty); 
-  
+  startNumber = generateInitialNumber(currentDifficulty);
+
   currentNumber = startNumber;
-   updateEnemyInfoUI(null, null); 
+  updateEnemyInfoUI(null, null);
   step = 0;
   combo = 0;
   maxCombo = 0
@@ -469,7 +475,7 @@ function initGame(difficulty) {
 
   // ここで確実に hard のボタンが配置されます
   updatePrimeButtons();
-  
+
   updateNumberUI();
   updateHPUI();
   updateEnemyHPUI();
@@ -504,7 +510,7 @@ function onPrimeClick(p, btn) {
     currentNumber = Math.floor(currentNumber / p);
     step++;
     usedPrimesThisRound.push(p);
-    
+
     btn.classList.add('is-correct');
     setTimeout(() => btn.classList.remove('is-correct'), 200);
 
@@ -553,9 +559,9 @@ function handleMiss() {
   }
 
   setTimeout(() => {
-  isStunned = false;
-  mainArea.classList.remove('is-stunned');
-}, 500);
+    isStunned = false;
+    mainArea.classList.remove('is-stunned');
+  }, 500);
 }
 
 // ===================================================
@@ -569,16 +575,16 @@ function handleComplete() {
   const comboMultiplier = 1 + combo * 0.05; // ★変更: コンボの影響は0.1→0.05に弱め、「少しだけ」反映する程度にする
 
   let addedScore = Math.floor((difficultySum * 12 + step * 5) * comboMultiplier);
-  
+
   if (!vsMode) {
     totalScore += addedScore;
   } else {
     dealDamageToOpponent(addedScore); // 相手にダメージ
     pushMyState();                    // 自分の状態を同期
   }
-  
+
   showDamageFloat(addedScore); // ★追加
-  
+
   combo++;
   if (combo > maxCombo) {
     maxCombo = combo;
@@ -726,7 +732,7 @@ function showResultScreen(message, isNewRecord, ratingData = null) {
   if (newRecordBadge) {
     newRecordBadge.classList.toggle('is-hidden', !isNewRecord);
   }
-   // ★追加: Soloモード（VSモードでない）の時だけXシェアボタンを表示
+  // ★追加: Soloモード（VSモードでない）の時だけXシェアボタンを表示
   if (btnShareX) {
     btnShareX.classList.toggle('is-hidden', vsMode);
   }
@@ -738,17 +744,17 @@ function showResultScreen(message, isNewRecord, ratingData = null) {
     if (ratingData) {
       ratingSection.classList.remove('is-hidden');
 
-      const beforeEl  = document.getElementById('ratingBefore');
-      const afterEl   = document.getElementById('ratingAfter');
-      const diffEl    = document.getElementById('ratingDiff');
+      const beforeEl = document.getElementById('ratingBefore');
+      const afterEl = document.getElementById('ratingAfter');
+      const diffEl = document.getElementById('ratingDiff');
       const bonusesEl = document.getElementById('ratingBonuses');
 
       if (beforeEl) beforeEl.textContent = ratingData.before;
-      if (afterEl)  afterEl.textContent  = ratingData.before; // アニメ前は変化前の値
+      if (afterEl) afterEl.textContent = ratingData.before; // アニメ前は変化前の値
       if (diffEl) {
         const sign = ratingData.change >= 0 ? '+' : '';
-        diffEl.textContent  = `${sign}${ratingData.change}`;
-        diffEl.className    = `rating-diff ${ratingData.change >= 0 ? 'is-positive' : 'is-negative'}`;
+        diffEl.textContent = `${sign}${ratingData.change}`;
+        diffEl.className = `rating-diff ${ratingData.change >= 0 ? 'is-positive' : 'is-negative'}`;
       }
       if (bonusesEl) {
         bonusesEl.innerHTML = ratingData.bonuses
@@ -774,7 +780,7 @@ function shareResultToX(isNewRecord) {
     : `【Prime Striker】`;
 
   const text =
-`${headline}
+    `${headline}
 難易度: ${info.label}
 スコア: ${scoreText}
 最大コンボ: ${maxCombo}
@@ -867,8 +873,8 @@ window.addEventListener('resize', () => {
 // 一時停止 / 再開
 // ===================================================
 const pauseOverlay = document.getElementById('pause-overlay');
-const pauseBtn     = document.getElementById('pauseBtn');
-const resumeBtn    = document.getElementById('resumeBtn');
+const pauseBtn = document.getElementById('pauseBtn');
+const resumeBtn = document.getElementById('resumeBtn');
 
 function pause() {
   if (isGameOver || isPaused) return;
@@ -894,7 +900,7 @@ function togglePause() {
 }
 
 // ボタンクリック
-if (pauseBtn)  pauseBtn.addEventListener('click',  () => togglePause());
+if (pauseBtn) pauseBtn.addEventListener('click', () => togglePause());
 if (resumeBtn) resumeBtn.addEventListener('click', () => resume());
 
 // ★変更: Easyモード専用のキー配置（画面のボタンが6個・3列のため、それに合わせた配置にする）
@@ -1002,7 +1008,7 @@ export { initGame, handleGameOver, updateHPUI, updateEnemyHPUI };
 async function initVsBattle(config) {
   vsRoomId = config.roomId;
   const { getCurrentUser: getUser } = await import('./firebase.js');
-  const user = getUser(); 
+  const user = getUser();
   if (!user) return;
 
   vsMyUid = user.uid;
@@ -1047,10 +1053,10 @@ async function pushMyState() {
   if (!vsMode || !vsRoomId || !vsMyUid) return;
   const { db, ref, update } = await import('./firebase.js');
   await update(ref(db, `rooms/${vsRoomId}/players/${vsMyUid}`), {
-    hp:            currentHP,
+    hp: currentHP,
     currentNumber: currentNumber,
-    combo:         combo,
-    connected:     true,
+    combo: combo,
+    connected: true,
   });
 }
 
@@ -1102,8 +1108,8 @@ async function listenToOpponent() {
   });
 
   // リスナー解除用の関数をまとめる
-  vsUnsubscribe = () => { 
-    unsubOpponent(); 
+  vsUnsubscribe = () => {
+    unsubOpponent();
     unsubMyState(); // ★追加
   };
 }
@@ -1172,9 +1178,9 @@ async function handleVsGameOver(result) {
     ]);
 
     if (myData && opponentData) {
-      const myRating       = myData.rating       ?? 1200;
-      const opponentRating = opponentData.rating  ?? 1200;
-      const winStreak      = isWin ? (myData.winStreak ?? 0) : 0;
+      const myRating = myData.rating ?? 1200;
+      const opponentRating = opponentData.rating ?? 1200;
+      const winStreak = isWin ? (myData.winStreak ?? 0) : 0;
 
       const { change, newRating, bonuses } = calcRatingChange(
         myRating, opponentRating, isWin,
@@ -1191,8 +1197,8 @@ async function handleVsGameOver(result) {
   }
 
   const messages = {
-    win:            'YOU WIN! 🎉',
-    lose:           'YOU LOSE...',
+    win: 'YOU WIN! 🎉',
+    lose: 'YOU LOSE...',
     win_disconnect: 'WIN（相手が切断）',
   };
 
@@ -1208,7 +1214,7 @@ function animateRating(from, to) {
 
   function tick(now) {
     const progress = Math.min((now - startTime) / duration, 1);
-    const eased    = 1 - Math.pow(1 - progress, 3);
+    const eased = 1 - Math.pow(1 - progress, 3);
     el.textContent = Math.round(from + (to - from) * eased);
     if (progress < 1) requestAnimationFrame(tick);
   }
