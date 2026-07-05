@@ -591,9 +591,16 @@ async function openMyPage() {
 
 // 称号を返す関数
 function getRankTitle(rating) {
-  if (rating >= 1600) return '👑 素因数分解王';
-  if (rating >= 1400) return '⚡ 素数の達人';
-  if (rating >= 1200) return '🔥 因数分解師';
-  if (rating >= 1000) return '🌱 素数探索者';
-  return '📖 見習い計算士';
+  if (rating >= 2200) return '🌌 宇宙の素数神';
+  if (rating >= 2000) return '💎 伝説の分解者';
+  if (rating >= 1800) return '🏆 素因数分解王';
+  if (rating >= 1650) return '👑 素数の覇者';
+  if (rating >= 1500) return '⚡ 素数の達人';
+  if (rating >= 1400) return '🔥 上級因数分解師';
+  if (rating >= 1300) return '🎯 因数分解師';
+  if (rating >= 1200) return '⚙️ 中級計算士';
+  if (rating >= 1100) return '🌱 素数探索者';
+  if (rating >= 1000) return '📐 見習い計算士';
+  if (rating >= 900) return '🔢 数字の入門者';
+  return '📖 素数初心者';
 };
