@@ -2,10 +2,10 @@
 import { loginWithGoogle, logout, onAuthChanged, getCurrentUser as getFirebaseUser } from './firebase.js';
 
 // ============ 画面要素 ============
-const loginScreen     = document.getElementById('login-screen');
-const startScreen     = document.getElementById('start-screen');
-const btnGoogleLogin  = document.getElementById('btn-google-login');
-const btnGuestLogin   = document.getElementById('btn-guest-login');
+const loginScreen = document.getElementById('login-screen');
+const startScreen = document.getElementById('start-screen');
+const btnGoogleLogin = document.getElementById('btn-google-login');
+const btnGuestLogin = document.getElementById('btn-guest-login');
 const highScoreValueDisplay = document.getElementById('highScoreValue');
 
 // ============ 状態 ============
@@ -63,17 +63,17 @@ export function getOnlineUser() {
   return currentUser;
 }
 // ============ ユーザー情報の表示 ============
-const userInfo   = document.getElementById('user-info');
+const userInfo = document.getElementById('user-info');
 const userAvatar = document.getElementById('user-avatar');
-const userName   = document.getElementById('user-name');
-const btnLogout  = document.getElementById('btn-logout');
+const userName = document.getElementById('user-name');
+const btnLogout = document.getElementById('btn-logout');
 
 function updateUserInfoUI(user, nickname = null) {
   if (!userInfo) return;
   if (user) {
     userInfo.classList.remove('is-hidden');
     if (userAvatar) userAvatar.src = user.photoURL || '';
-    if (userName)   userName.textContent = nickname || user.displayName || 'プレイヤー';
+    if (userName) userName.textContent = nickname || user.displayName || 'プレイヤー';
   } else {
     userInfo.classList.add('is-hidden');
   }
@@ -110,19 +110,19 @@ btnLogout?.addEventListener('click', async () => {
   showScreen(loginScreen, startScreen);
 });
 // ============ マッチング画面の要素 ============
-const matchingScreen        = document.getElementById('matching-screen');
-const btnRandomMatch        = document.getElementById('btn-random-match');
-const btnCreateRoom         = document.getElementById('btn-create-room');
-const btnJoinRoom           = document.getElementById('btn-join-room');
-const roomCodeInput         = document.getElementById('room-code-input');
-const waitingBox            = document.getElementById('waiting-box');
-const waitingText           = document.getElementById('waiting-text');
-const waitingRoomCode       = document.getElementById('waiting-room-code');
-const btnCancelMatch        = document.getElementById('btn-cancel-match');
-const btnBackFromMatching   = document.getElementById('btn-back-to-start-from-matching');
+const matchingScreen = document.getElementById('matching-screen');
+const btnRandomMatch = document.getElementById('btn-random-match');
+const btnCreateRoom = document.getElementById('btn-create-room');
+const btnJoinRoom = document.getElementById('btn-join-room');
+const roomCodeInput = document.getElementById('room-code-input');
+const waitingBox = document.getElementById('waiting-box');
+const waitingText = document.getElementById('waiting-text');
+const waitingRoomCode = document.getElementById('waiting-room-code');
+const btnCancelMatch = document.getElementById('btn-cancel-match');
+const btnBackFromMatching = document.getElementById('btn-back-to-start-from-matching');
 
 let currentRoomId = null;
-let roomListener  = null;
+let roomListener = null;
 
 // ============ Firebaseからニックネームを取得 ============
 async function getMyNickname() {
@@ -179,9 +179,9 @@ function onMatchFound(roomId, roomData, matchType) {
   currentRoomId = roomId;
   hideWaiting();
 
-  const gameScreen    = document.getElementById('game-screen');
+  const gameScreen = document.getElementById('game-screen');
   if (matchingScreen) matchingScreen.classList.remove('active');
-  if (gameScreen)     gameScreen.classList.add('active');
+  if (gameScreen) gameScreen.classList.add('active');
 
   if (typeof window.playBgm === 'function') window.playBgm();
   if (typeof window.startBattle === 'function') {
@@ -198,22 +198,22 @@ async function startRandomMatch() {
   const { db, ref, get, set, onValue, serverTimestamp, onDisconnect, remove } = await import('./firebase.js');
 
   const waitingRef = ref(db, 'waiting');
-  const snapshot   = await get(waitingRef);
+  const snapshot = await get(waitingRef);
 
   if (snapshot.exists()) {
     // 待機中のルームがある → 参加
     const waitingData = snapshot.val();
-    const roomId      = Object.keys(waitingData)[0];
-    const roomRef     = ref(db, `rooms/${roomId}`);
+    const roomId = Object.keys(waitingData)[0];
+    const roomRef = ref(db, `rooms/${roomId}`);
 
     // 自分の情報を追加してゲーム開始
     await set(ref(db, `rooms/${roomId}/players/${currentUser.uid}`), {
       nickname: nickname,
-      avatar:        currentUser.photoURL    || '',
-      hp:            1000,
+      avatar: currentUser.photoURL || '',
+      hp: 1000,
       currentNumber: 0,
-      combo:         0,
-      connected:     true,
+      combo: 0,
+      connected: true,
     });
 
     // 待機リストから削除
@@ -228,21 +228,21 @@ async function startRandomMatch() {
   } else {
     // 待機中のルームがない → 新規作成して待機
     const roomCode = generateRoomCode();
-    const roomId   = roomCode;
-    const roomRef  = ref(db, `rooms/${roomId}`);
+    const roomId = roomCode;
+    const roomRef = ref(db, `rooms/${roomId}`);
     const nickname = await getMyNickname();
 
     await set(roomRef, {
-      status:    'waiting',
+      status: 'waiting',
       createdAt: serverTimestamp(),
       players: {
         [currentUser.uid]: {
           nickname: nickname,
-          avatar:        currentUser.photoURL    || '',
-          hp:            1000,
+          avatar: currentUser.photoURL || '',
+          hp: 1000,
           currentNumber: 0,
-          combo:         0,
-          connected:     true,
+          combo: 0,
+          connected: true,
         }
       }
     });
@@ -260,7 +260,7 @@ async function startRandomMatch() {
       const data = snap.val();
       if (!data) return;
       if (data.status === 'playing' && data.players &&
-          Object.keys(data.players).length >= 2) {
+        Object.keys(data.players).length >= 2) {
         onMatchFound(roomId, data, 'random');
       }
     });
@@ -272,23 +272,23 @@ async function createRoom() {
   if (!currentUser) { alert('ログインが必要です。'); return; }
 
   const roomCode = generateRoomCode();
-  const roomId   = roomCode;
+  const roomId = roomCode;
 
   const { db, ref, set, onValue, serverTimestamp, onDisconnect } = await import('./firebase.js');
   const roomRef = ref(db, `rooms/${roomId}`);
   const nickname = await getMyNickname();
 
   await set(roomRef, {
-    status:    'waiting',
+    status: 'waiting',
     createdAt: serverTimestamp(),
     players: {
       [currentUser.uid]: {
         nickname: nickname,
-        avatar:        currentUser.photoURL    || '',
-        hp:            1000,
+        avatar: currentUser.photoURL || '',
+        hp: 1000,
         currentNumber: 0,
-        combo:         0,
-        connected:     true,
+        combo: 0,
+        connected: true,
       }
     }
   });
@@ -303,7 +303,7 @@ async function createRoom() {
     const data = snap.val();
     if (!data) return;
     if (data.status === 'playing' && data.players &&
-        Object.keys(data.players).length >= 2) {
+      Object.keys(data.players).length >= 2) {
       onMatchFound(roomId, data, 'room');
     }
   });
@@ -314,7 +314,7 @@ async function joinRoom(code) {
   if (!currentUser) { alert('ログインが必要です。'); return; }
   if (!code || code.length !== 6) { alert('6桁のコードを入力してください。'); return; }
 
-  const roomId  = code.toUpperCase();
+  const roomId = code.toUpperCase();
   const { db, ref, get, set, update } = await import('./firebase.js');
   const roomRef = ref(db, `rooms/${roomId}`);
   const snapshot = await get(roomRef);
@@ -334,11 +334,11 @@ async function joinRoom(code) {
   const nickname = await getMyNickname();
   await set(ref(db, `rooms/${roomId}/players/${currentUser.uid}`), {
     nickname: nickname,
-    avatar:        currentUser.photoURL    || '',
-    hp:            1000,
+    avatar: currentUser.photoURL || '',
+    hp: 1000,
     currentNumber: 0,
-    combo:         0,
-    connected:     true,
+    combo: 0,
+    connected: true,
   });
 
   await update(roomRef, { status: 'playing' });
@@ -361,8 +361,8 @@ async function cancelMatch() {
 
 // ============ イベントリスナー ============
 btnRandomMatch?.addEventListener('click', startRandomMatch);
-btnCreateRoom?.addEventListener('click',  createRoom);
-btnJoinRoom?.addEventListener('click',    () => joinRoom(roomCodeInput?.value));
+btnCreateRoom?.addEventListener('click', createRoom);
+btnJoinRoom?.addEventListener('click', () => joinRoom(roomCodeInput?.value));
 btnCancelMatch?.addEventListener('click', cancelMatch);
 btnBackFromMatching?.addEventListener('click', async () => {
   await cancelMatch();
@@ -371,7 +371,7 @@ btnBackFromMatching?.addEventListener('click', async () => {
 
 // ============ 外部公開 ============
 window.getCurrentOnlineUser = () => currentUser;
-window.currentRoomId        = () => currentRoomId;
+window.currentRoomId = () => currentRoomId;
 
 // ★新規追加: 「もう一度対戦」が押された時に呼ばれる
 window.retryVsMatch = async function (lastConfig) {
@@ -395,9 +395,9 @@ function updateRatingDisplay(rating) {
   if (el) el.textContent = rating;
 }
 // ============ ニックネーム設定 ============
-const nicknameModal     = document.getElementById('nickname-modal');
-const nicknameInput     = document.getElementById('nickname-input');
-const btnNicknameSave   = document.getElementById('btn-nickname-save');
+const nicknameModal = document.getElementById('nickname-modal');
+const nicknameInput = document.getElementById('nickname-input');
+const btnNicknameSave = document.getElementById('btn-nickname-save');
 
 function showNicknameModal(user) {
   // スタート画面を隠してニックネーム設定画面を表示
@@ -446,7 +446,7 @@ btnNicknameSave?.addEventListener('click', () => {
 // ============ 設定モーダルからのニックネーム変更 ============
 const settingsNicknameInput = document.getElementById('settings-nickname-input');
 const btnSettingsNicknameSave = document.getElementById('btn-settings-nickname-save');
-const settingsNicknameHint  = document.getElementById('settings-nickname-hint');
+const settingsNicknameHint = document.getElementById('settings-nickname-hint');
 
 btnSettingsNicknameSave?.addEventListener('click', async () => {
   const user = getFirebaseUser();
@@ -489,5 +489,111 @@ btnSettings?.addEventListener('click', async () => {
     const { getUserData } = await import('./firebase.js');
     const data = await getUserData(user.uid);
     settingsNicknameInput.value = data?.displayName || user.displayName || '';
-  } catch (e) {}
+  } catch (e) { }
+})
+// ============ マイページ ============
+const mypageModal = document.getElementById('mypage-modal');
+const mypageCloseBtn = document.getElementById('mypageCloseBtn');
+
+// user-infoをタップでマイページを開く
+userInfo?.addEventListener('click', () => {
+  openMyPage();
 });
+
+mypageCloseBtn?.addEventListener('click', () => {
+  mypageModal?.classList.remove('is-open');
+});
+
+mypageModal?.addEventListener('click', (e) => {
+  if (e.target === mypageModal) mypageModal.classList.remove('is-open');
+});
+
+async function openMyPage() {
+  if (!currentUser) return;
+  mypageModal?.classList.add('is-open');
+
+  // プロフィール
+  const avatarEl = document.getElementById('mypage-avatar');
+  const nicknameEl = document.getElementById('mypage-nickname');
+  const titleEl = document.getElementById('mypage-title');
+  const ratingEl = document.getElementById('mypage-rating');
+
+  if (avatarEl) avatarEl.src = currentUser.photoURL || '';
+
+  try {
+    const { getUserData } = await import('./firebase.js');
+    const data = await getUserData(currentUser.uid);
+
+    const nickname = data?.displayName || currentUser.displayName || 'Player';
+    const rating = data?.rating ?? 1200;
+    const wins = data?.wins ?? 0;
+    const losses = data?.losses ?? 0;
+    const winStreak = data?.winStreak ?? 0;
+    const total = wins + losses;
+    const winRate = total > 0 ? Math.round((wins / total) * 100) : 0;
+
+    if (nicknameEl) nicknameEl.textContent = nickname;
+    if (ratingEl) ratingEl.textContent = rating;
+
+    // 称号
+    const rankTitle = getRankTitle(rating);
+    if (titleEl) titleEl.textContent = rankTitle;
+
+    // 戦績
+    const winsEl = document.getElementById('mypage-wins');
+    const lossesEl = document.getElementById('mypage-losses');
+    const winrateEl = document.getElementById('mypage-winrate');
+    const streakEl = document.getElementById('mypage-streak');
+    const totalEl = document.getElementById('mypage-total-games');
+
+    if (winsEl) winsEl.textContent = wins;
+    if (lossesEl) lossesEl.textContent = losses;
+    if (winrateEl) winrateEl.textContent = `${winRate}%`;
+    if (streakEl) streakEl.textContent = winStreak;
+    if (totalEl) totalEl.textContent = total;
+
+  } catch (e) {
+    console.error('マイページ取得エラー:', e);
+  }
+
+  // ベストスコア（localStorage から）
+  const HIGH_SCORE_KEYS = {
+    easy: 'primeStriker_highScore_easy',
+    normal: 'primeStriker_highScore_normal',
+    hard: 'primeStriker_highScore_hard',
+    extreme: 'primeStriker_highScore_extreme',
+  };
+
+  const scores = {};
+  let maxScore = 0;
+  Object.entries(HIGH_SCORE_KEYS).forEach(([diff, key]) => {
+    const s = parseInt(localStorage.getItem(key), 10) || 0;
+    scores[diff] = s;
+    if (s > maxScore) maxScore = s;
+  });
+
+  // ベストスコア表示
+  const bestOverallEl = document.getElementById('mypage-best-overall');
+  if (bestOverallEl) bestOverallEl.textContent = maxScore.toLocaleString();
+
+  Object.entries(scores).forEach(([diff, score]) => {
+    const valEl = document.getElementById(`mypage-score-${diff}`);
+    const barEl = document.getElementById(`mypage-bar-${diff}`);
+    if (valEl) valEl.textContent = score.toLocaleString();
+    if (barEl) {
+      // アニメーション用に少し遅延させてからwidthを設定
+      setTimeout(() => {
+        barEl.style.width = maxScore > 0 ? `${(score / maxScore) * 100}%` : '0%';
+      }, 100);
+    }
+  });
+}
+
+// 称号を返す関数
+function getRankTitle(rating) {
+  if (rating >= 1600) return '👑 素因数分解王';
+  if (rating >= 1400) return '⚡ 素数の達人';
+  if (rating >= 1200) return '🔥 因数分解師';
+  if (rating >= 1000) return '🌱 素数探索者';
+  return '📖 見習い計算士';
+};
