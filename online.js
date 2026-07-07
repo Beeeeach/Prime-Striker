@@ -531,6 +531,8 @@ async function openMyPage() {
     const winStreak = data?.winStreak ?? 0;
     const total = wins + losses;
     const winRate = total > 0 ? Math.round((wins / total) * 100) : 0;
+    const level = data?.level ?? 1;
+    const exp = data?.exp ?? 0;
 
     if (nicknameEl) nicknameEl.textContent = nickname;
     if (ratingEl) ratingEl.textContent = rating;
@@ -545,7 +547,30 @@ async function openMyPage() {
     const winrateEl = document.getElementById('mypage-winrate');
     const streakEl = document.getElementById('mypage-streak');
     const totalEl = document.getElementById('mypage-total-games');
+    // ★追加: レベル・EXP表示
+    const levelEl = document.getElementById('mypage-level');
+    const expBarEl = document.getElementById('mypage-exp-bar');
+    const expTextEl = document.getElementById('mypage-exp-text');
 
+    if (levelEl) levelEl.textContent = `Lv. ${level}`;
+
+    try {
+      const { calcRequiredExp } = await import('./firebase.js');
+      const required = calcRequiredExp(level);
+      const pct = level >= 99 ? 100 : Math.min(100, (exp / required) * 100);
+
+      setTimeout(() => {
+        if (expBarEl) expBarEl.style.width = `${pct}%`;
+      }, 200);
+
+      if (expTextEl) {
+        expTextEl.textContent = level >= 99
+          ? 'MAX LEVEL'
+          : `${exp.toLocaleString()} / ${required.toLocaleString()} EXP`;
+      }
+    } catch (e) {
+      console.error('EXP計算エラー:', e);
+    }
     if (winsEl) winsEl.textContent = wins;
     if (lossesEl) lossesEl.textContent = losses;
     if (winrateEl) winrateEl.textContent = `${winRate}%`;
