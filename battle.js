@@ -647,22 +647,36 @@ function handleGameOver() {
     message = 'FINISH!';
   }
 
-  // ★追加: ハイスコア判定（保存とフラグ取得）
   const isNewRecord = checkAndUpdateHighScore(totalScore);
 
-  // ★追加: 新記録時にFirebaseのリーダーボードにも送信
   if (isNewRecord) {
     import('./firebase.js').then(({ submitScoreToLeaderboard }) => {
       submitScoreToLeaderboard(currentDifficulty, totalScore);
     });
   }
 
-  // ★追加: 難易度選択画面のハイスコア表示を更新
   if (typeof window.updateDifficultyHighScores === 'function') {
     window.updateDifficultyHighScores();
   }
 
-  showResultScreen(message, isNewRecord);
+  // ★追加: EXP付与
+  let gainedExp = calcSoloExp(totalScore, currentDifficulty);
+  if (isNewRecord) gainedExp += 20; // 新記録ボーナス
+  (async () => {
+    try {
+      const { updateUserExp } = await import('./firebase.js');
+      const { getCurrentUser } = await import('./firebase.js');
+      const user = getCurrentUser();
+      if (user) {
+        const expResult = await updateUserExp(user.uid, gainedExp);
+        showResultScreen(message, isNewRecord, null, { gainedExp, expResult });
+        return;
+      }
+    } catch (e) {
+      console.error('EXP更新エラー:', e);
+    }
+    showResultScreen(message, isNewRecord);
+  })();
 
   if (typeof window.onGameOver === 'function') {
     window.onGameOver({ score: totalScore, maxCombo: maxCombo, isNewRecord: isNewRecord });
@@ -721,7 +735,7 @@ function updateScoreUI() {
     scoreDisplayValue.textContent = Math.floor(totalScore);
   }
 }
-function showResultScreen(message, isNewRecord, ratingData = null) {
+function showResultScreen(message, isNewRecord, ratingData = null, expData = null) {
   if (!resultScreen) return;
   if (resultMessage) resultMessage.textContent = message;
   if (resultScoreValue) resultScoreValue.textContent = Math.floor(totalScore);
@@ -765,6 +779,39 @@ function showResultScreen(message, isNewRecord, ratingData = null) {
       setTimeout(() => animateRating(ratingData.before, ratingData.after), 600);
     } else {
       ratingSection.classList.add('is-hidden');
+    }
+  }
+  // ★追加: EXP表示
+  const expSection = document.getElementById('resultExpSection');
+  if (expSection) {
+    if (expData) {
+      expSection.classList.remove('is-hidden');
+      const gainedEl = document.getElementById('resultExpGained');
+      const barEl = document.getElementById('resultExpBar');
+      const levelEl = document.getElementById('resultExpLevel');
+      const levelUpEl = document.getElementById('resultLevelUp');
+
+      if (gainedEl) gainedEl.textContent = `+${expData.gainedExp} EXP`;
+      if (levelEl) levelEl.textContent = `Lv. ${expData.expResult?.newLevel ?? 1}`;
+
+      if (expData.expResult?.leveledUp) {
+        levelUpEl?.classList.remove('is-hidden');
+      } else {
+        levelUpEl?.classList.add('is-hidden');
+      }
+
+      // EXPバーのアニメーション
+      setTimeout(() => {
+        if (barEl && expData.expResult) {
+          import('./firebase.js').then(({ calcRequiredExp }) => {
+            const required = calcRequiredExp(expData.expResult.newLevel);
+            const pct = Math.min(100, (expData.expResult.newExp / required) * 100);
+            barEl.style.width = `${pct}%`;
+          });
+        }
+      }, 300);
+    } else {
+      expSection.classList.add('is-hidden');
     }
   }
   resultScreen.classList.add('is-visible');
@@ -1201,10 +1248,55 @@ async function handleVsGameOver(result) {
     win_disconnect: 'WIN（相手が切断）',
   };
 
+  let vsGainedExp = 0;
+  try {
+    const { updateUserExp } = await import('./firebase.js');
+    const isUpset = ratingData
+      ? (isWin && ratingData.before < ratingData.after - 30)
+      : false;
+    vsGainedExp = calcVsExp(isWin, isUpset);
+    const expResult = await updateUserExp(vsMyUid, vsGainedExp);
+    playSe(EndingSound);
+    showResultScreen(messages[result] || 'FINISH!', false, ratingData, { gainedExp: vsGainedExp, expResult });
+    return;
+  } catch (e) {
+    console.error('VS EXP更新エラー:', e);
+  }
+
   playSe(EndingSound);
   showResultScreen(messages[result] || 'FINISH!', false, ratingData);
 }
 
+// ===================================================
+// EXP・レベル計算
+// ===================================================
+function calcSoloExp(score, difficulty) {
+  let baseExp;
+  if (score < 500) baseExp = 5;
+  else if (score < 1000) baseExp = 15;
+  else if (score < 2000) baseExp = 25;
+  else if (score < 4000) baseExp = 40;
+  else if (score < 6000) baseExp = 55;
+  else if (score < 8000) baseExp = 70;
+  else if (score < 10000) baseExp = 85;
+  else if (score < 15000) baseExp = 100;
+  else if (score < 20000) baseExp = 120;
+  else if (score < 30000) baseExp = 140;
+  else if (score < 50000) baseExp = 165;
+  else if (score < 80000) baseExp = 190;
+  else if (score < 100000) baseExp = 215;
+  else baseExp = 250;
+
+  const multipliers = { easy: 1.0, normal: 1.3, hard: 1.6, extreme: 2.0 };
+  const mult = multipliers[difficulty] || 1.0;
+  return Math.floor(baseExp * mult);
+}
+
+function calcVsExp(isWin, isUpset = false) {
+  let exp = isWin ? 60 : 20;
+  if (isWin && isUpset) exp += 30;
+  return exp;
+}
 function animateRating(from, to) {
   const el = document.getElementById('ratingAfter');
   if (!el) return;
