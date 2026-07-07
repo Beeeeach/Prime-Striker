@@ -67,6 +67,8 @@ export async function initUserIfNeeded(uid, displayName) {
       wins: 0,
       losses: 0,
       winStreak: 0,
+      exp: 0,
+      level: 1,
       createdAt: serverTimestamp(),
     });
   }
@@ -83,6 +85,45 @@ export async function updateUserStats(uid, isWin, newRating) {
     losses: isWin ? (data.losses || 0) : (data.losses || 0) + 1,
     winStreak: isWin ? (data.winStreak || 0) + 1 : 0,
   });
+}
+// EXPとレベルを更新する
+export async function updateUserExp(uid, gainedExp) {
+  const userRef = ref(db, `users/${uid}`);
+  const snap = await get(userRef);
+  if (!snap.exists()) return null;
+
+  const data = snap.val();
+  let currentExp = data.exp ?? 0;
+  let currentLevel = data.level ?? 1;
+
+  currentExp += gainedExp;
+
+  // レベルアップ処理
+  let leveledUp = false;
+  let levelsGained = 0;
+  while (currentLevel < 99) {
+    const required = calcRequiredExp(currentLevel);
+    if (currentExp >= required) {
+      currentExp -= required;
+      currentLevel++;
+      leveledUp = true;
+      levelsGained++;
+    } else {
+      break;
+    }
+  }
+
+  await update(userRef, {
+    exp: currentExp,
+    level: currentLevel,
+  });
+
+  return { newLevel: currentLevel, newExp: currentExp, leveledUp, levelsGained };
+}
+
+// レベルアップに必要なEXPを計算
+export function calcRequiredExp(level) {
+  return Math.floor(100 * level * Math.pow(1.2, level - 1));
 }
 
 const DEFAULT_RATING = 1200;
@@ -147,4 +188,4 @@ export async function getTopRatings(limitCount = 10) {
   return list.sort((a, b) => (b.rating ?? DEFAULT_RATING) - (a.rating ?? DEFAULT_RATING));
 }
 
-export { db, ref, set, get, push, onValue, onDisconnect, serverTimestamp, remove, update, runTransaction, query, orderByChild, limitToLast };
+export { db, ref, set, get, push, onValue, onDisconnect, serverTimestamp, remove, update, runTransaction, query, orderByChild, limitToLast, updateUserExp, calcRequiredExp };
