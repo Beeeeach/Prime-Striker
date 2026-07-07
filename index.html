@@ -2344,6 +2344,119 @@
       border-color: var(--self-color);
       box-shadow: 0 0 14px var(--self-glow);
     }
+
+    /* ============ リザルト画面 EXP表示 ============ */
+    .result-exp-section {
+      margin: 4px 0 16px;
+      padding: 14px 16px;
+      background: #0a0f1c;
+      border: 1px solid var(--self-color);
+      border-radius: 12px;
+      box-shadow: 0 0 12px rgba(0, 230, 195, 0.15);
+    }
+
+    .result-exp-section.is-hidden {
+      display: none;
+    }
+
+    .result-exp-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+
+    .result-exp-gained {
+      font-family: var(--font-display);
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--self-color);
+      text-shadow: 0 0 10px var(--self-glow);
+      letter-spacing: 1px;
+    }
+
+    .result-exp-level {
+      font-family: var(--font-display);
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--text-dim);
+      letter-spacing: 1px;
+    }
+
+    .result-exp-bar-track {
+      height: 8px;
+      background: var(--line);
+      border-radius: 4px;
+      overflow: hidden;
+      margin-bottom: 8px;
+    }
+
+    .result-exp-bar {
+      height: 100%;
+      background: linear-gradient(90deg, var(--self-color), #00ffcc);
+      border-radius: 4px;
+      transition: width 0.8s ease;
+      box-shadow: 0 0 8px var(--self-glow);
+      width: 0%;
+    }
+
+    .result-level-up {
+      font-family: var(--font-display);
+      font-size: 15px;
+      font-weight: 700;
+      letter-spacing: 3px;
+      color: var(--accent);
+      text-shadow: 0 0 14px rgba(255, 182, 39, 0.7);
+      margin: 4px 0 0;
+      text-align: center;
+      animation: new-record-pop 0.5s ease forwards;
+    }
+
+    .result-level-up.is-hidden {
+      display: none;
+    }
+
+    /* ============ マイページ レベル表示 ============ */
+    .mypage-level-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 4px;
+    }
+
+    .mypage-level {
+      font-family: var(--font-display);
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--self-color);
+      letter-spacing: 1px;
+      flex-shrink: 0;
+    }
+
+    .mypage-exp-bar-track {
+      flex: 1;
+      height: 6px;
+      background: var(--line);
+      border-radius: 3px;
+      overflow: hidden;
+    }
+
+    .mypage-exp-bar {
+      height: 100%;
+      background: linear-gradient(90deg, var(--self-color), #00ffcc);
+      border-radius: 3px;
+      transition: width 0.8s ease;
+      box-shadow: 0 0 6px var(--self-glow);
+      width: 0%;
+    }
+
+    .mypage-exp-text {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      color: var(--text-dim);
+      flex-shrink: 0;
+      white-space: nowrap;
+    }
   </style>
 </head>
 
@@ -2763,6 +2876,13 @@
         <div class="mypage-profile-info">
           <span class="mypage-nickname" id="mypage-nickname">---</span>
           <span class="mypage-title" id="mypage-title">---</span>
+          <div class="mypage-level-row">
+            <span class="mypage-level" id="mypage-level">Lv. 1</span>
+            <div class="mypage-exp-bar-track">
+              <div class="mypage-exp-bar" id="mypage-exp-bar" style="width:0%"></div>
+            </div>
+            <span class="mypage-exp-text" id="mypage-exp-text">0 / 100 EXP</span>
+          </div>
         </div>
         <div class="mypage-rating-badge">
           <span class="mypage-rating-label">RATING</span>
@@ -2890,6 +3010,17 @@
           <span class="rating-diff" id="ratingDiff">+0</span>
         </div>
         <div class="result-rating-bonuses" id="ratingBonuses"></div>
+      </div>
+      <!-- EXPセクション -->
+      <div class="result-exp-section is-hidden" id="resultExpSection">
+        <div class="result-exp-row">
+          <span class="result-exp-gained" id="resultExpGained">+0 EXP</span>
+          <span class="result-exp-level" id="resultExpLevel">Lv. 1</span>
+        </div>
+        <div class="result-exp-bar-track">
+          <div class="result-exp-bar" id="resultExpBar" style="width:0%"></div>
+        </div>
+        <p class="result-level-up is-hidden" id="resultLevelUp">🎉 LEVEL UP!</p>
       </div>
       <p class="new-record-badge is-hidden" id="newRecordBadge">⚡ NEW RECORD ⚡</p>
 
