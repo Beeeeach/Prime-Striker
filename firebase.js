@@ -188,4 +188,4 @@ export async function getTopRatings(limitCount = 10) {
   return list.sort((a, b) => (b.rating ?? DEFAULT_RATING) - (a.rating ?? DEFAULT_RATING));
 }
 
-export { db, ref, set, get, push, onValue, onDisconnect, serverTimestamp, remove, update, runTransaction, query, orderByChild, limitToLast, updateUserExp };
+export { db, ref, set, get, push, onValue, onDisconnect, serverTimestamp, remove, update, runTransaction, query, orderByChild, limitToLast };
