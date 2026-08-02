@@ -5,17 +5,17 @@ import { getOnlineUser } from './online.js';
 
   const startScreen = document.getElementById("start-screen");
   const difficultyScreen = document.getElementById("difficulty-screen");
-  const matchingScreen   = document.getElementById("matching-screen");
+  const matchingScreen = document.getElementById("matching-screen");
   const gameScreen = document.getElementById("game-screen");
 
   const btnSolo = document.getElementById("btn-solo");
   const btnVs = document.getElementById("btn-vs");
   const btnBackToTitle = document.getElementById("btn-back-to-title");
 
-  const btnEasy        = document.getElementById("btn-easy");
-  const btnNormal      = document.getElementById("btn-normal");
-  const btnHard        = document.getElementById("btn-hard");
-  const btnExtreme     = document.getElementById("btn-extreme");
+  const btnEasy = document.getElementById("btn-easy");
+  const btnNormal = document.getElementById("btn-normal");
+  const btnHard = document.getElementById("btn-hard");
+  const btnExtreme = document.getElementById("btn-extreme");
   const btnBackToStart = document.getElementById("btn-back-to-start");
 
   function switchScreen(showEl, hideEl) {
@@ -41,47 +41,47 @@ import { getOnlineUser } from './online.js';
   }
 
   function startVsMode() {
-  // ゲストはオンライン対戦不可
-  if (typeof window.getCurrentOnlineUser === 'function') {
-    const user = window.getCurrentOnlineUser();
-    if (!user) {
-      alert('オンライン対戦にはGoogleログインが必要です。');
-      return;
+    // ゲストはオンライン対戦不可
+    if (typeof window.getCurrentOnlineUser === 'function') {
+      const user = window.getCurrentOnlineUser();
+      if (!user) {
+        alert('オンライン対戦にはGoogleログインが必要です。');
+        return;
+      }
     }
+    switchScreen(matchingScreen, startScreen);
   }
-  switchScreen(matchingScreen, startScreen);
-}
 
   function backToStart() {
     switchScreen(startScreen, difficultyScreen);
   }
 
   function backToTitle() {
-  if (typeof window.stopBattle === "function") {
-    window.stopBattle();
+    if (typeof window.stopBattle === "function") {
+      window.stopBattle();
+    }
+    difficultyScreen?.classList.remove("active");
+    matchingScreen?.classList.remove("active");
+    switchScreen(startScreen, gameScreen);
+    if (typeof window.updateHighScoreDisplay === "function") {
+      window.updateHighScoreDisplay?.();
+    }
+    if (typeof window.updateMyRatingDisplay === "function") {
+      window.updateMyRatingDisplay();
+    }
+    // ★追加: ランキングキャッシュをクリアして次回開時に再取得
+    if (typeof window.clearRankingCache === "function") {
+      window.clearRankingCache();
+    }
   }
-  difficultyScreen?.classList.remove("active");
-  matchingScreen?.classList.remove("active");
-  switchScreen(startScreen, gameScreen);
-  if (typeof window.updateHighScoreDisplay === "function") {
-    window.updateHighScoreDisplay?.();
-  }
-  if (typeof window.updateMyRatingDisplay === "function") {
-    window.updateMyRatingDisplay();
-  }
-  // ★追加: ランキングキャッシュをクリアして次回開時に再取得
-  if (typeof window.clearRankingCache === "function") {
-    window.clearRankingCache();
-  }
-}
 
   btnSolo.addEventListener("click", startSoloMode);
   btnVs.addEventListener("click", startVsMode);
   btnBackToTitle.addEventListener("click", backToTitle);
 
-  btnEasy?.addEventListener("click",    () => startWithDifficulty("easy"));
-  btnNormal?.addEventListener("click",  () => startWithDifficulty("normal"));
-  btnHard?.addEventListener("click",    () => startWithDifficulty("hard"));
+  btnEasy?.addEventListener("click", () => startWithDifficulty("easy"));
+  btnNormal?.addEventListener("click", () => startWithDifficulty("normal"));
+  btnHard?.addEventListener("click", () => startWithDifficulty("hard"));
   btnExtreme?.addEventListener("click", () => startWithDifficulty("extreme"));
   btnBackToStart?.addEventListener("click", backToStart);
 
@@ -172,7 +172,7 @@ if (btnSettings) {
 
 // 設定モーダルのスライダーを動かしたら、既存スライダーにも値を反映してinputイベントを発火させる
 const settingsBgmLabel = document.getElementById('settingsBgmLabel');
-const settingsSeLabel  = document.getElementById('settingsSeLabel');
+const settingsSeLabel = document.getElementById('settingsSeLabel');
 
 function updateSettingsMuteLabel(labelEl, percent) {
   if (!labelEl) return;
@@ -207,3 +207,15 @@ if (btnResetHighscore) {
     }
   });
 };
+// 末尾に追加
+const btnRestartTutorial = document.getElementById('btn-restart-tutorial');
+if (btnRestartTutorial) {
+  btnRestartTutorial.addEventListener('click', async () => {
+    // 設定モーダルを閉じる
+    document.getElementById('settings-modal')?.classList.remove('is-open');
+    // チュートリアルを起動
+    const { startTutorial } = await import('./tutorial.js');
+    document.getElementById('start-screen')?.classList.remove('active');
+    startTutorial();
+  });
+}
