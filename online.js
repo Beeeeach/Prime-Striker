@@ -37,6 +37,12 @@ function onGuest() {
   if (typeof window.updateHighScoreDisplay === 'function') {
     window.updateHighScoreDisplay();
   }
+  // ゲストのチュートリアル判定
+  const { shouldShowTutorial, startTutorial } = await import('./tutorial.js');
+  if (await shouldShowTutorial(null)) {
+    startScreen?.classList.remove('active');
+    startTutorial();
+  }
 }
 
 // ============ イベントリスナー ============
@@ -97,6 +103,14 @@ async function onLoggedInWithUI(user) {
     // 初回ログイン（ニックネーム未設定）の場合はニックネーム設定画面へ
     if (!data?.nicknameSet) {
       showNicknameModal(user);
+      return;
+    }
+
+    // チュートリアル判定
+    const { shouldShowTutorial, startTutorial } = await import('./tutorial.js');
+    if (await shouldShowTutorial(user)) {
+      startScreen?.classList.remove('active');
+      startTutorial();
     }
   } catch (e) {
     console.error('ユーザー初期化エラー:', e);
